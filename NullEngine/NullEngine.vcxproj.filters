@@ -40,6 +40,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="renderer\Renderer.Vulkan-CmdPool.ixx" />
+    <None Include="renderer\Renderer.Vulkan-CmdPool.cpp" />
   </ItemGroup>
 </Project>

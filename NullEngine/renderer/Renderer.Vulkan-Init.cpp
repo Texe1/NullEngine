@@ -54,6 +54,11 @@ VkContext::~VkContext()
 {
 	vkDeviceWaitIdle(this->logicalDevice);
 
+	if (this->commandPool.handle) {
+		vkFreeCommandBuffers(this->logicalDevice, this->commandPool.handle, 1, this->commandPool.buffers);
+		free(this->commandPool.buffers);
+		vkDestroyCommandPool(this->logicalDevice, this->commandPool.handle, 0);
+	}
 
 	for (u32 i = 0; i < this->swapchain.nImgs; i++) {
 		if (this->swapchain.framebuffers)vkDestroyFramebuffer(this->logicalDevice, this->swapchain.framebuffers[i], 0);

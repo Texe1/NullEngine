@@ -44,6 +44,11 @@ export namespace render {
 			struct {
 				VkRenderPass renderPass;
 			} renderPass;
+			struct {
+				VkCommandPool handle;
+				u32 nBuffers;
+				VkCommandBuffer* buffers;
+			} commandPool;
 
 			// SDL window
 			SDL_Window* wnd;
@@ -51,13 +56,17 @@ export namespace render {
 			VkContext(VkInstCfg&, VkDvcCfg&);
 			VkContext(VkInstCfg& instCfg) : VkContext((VkInstCfg&)instCfg, (VkDvcCfg&)VkDvcCfg::defaultCfg) {}
 			VkContext() : VkContext(VkInstCfg::defaultCfg) {}
+
+			int render();
+
 			~VkContext();
 
 		private:
-			void addRenderPass();
-			void addSwapchain();
 			void initInstance(const VkInstCfg&);
 			void initdevice(VkDvcCfg*);
+			void addSwapchain();
+			void addRenderPass();
+			void addCommandPool();
 		};
 	} // namespace vulkan
 } // namespace render
