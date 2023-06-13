@@ -20,16 +20,25 @@ typedef int64_t i64;
 #define DBG_LVL 0
 #endif // _DEBUG
 
-#define ERR(x) 
-#define WRN(x)
-#define INF(x)
-
 #if DBG_LVL > 0
-#define ERR(x) x
-#if DBG_LVL > 1
-#define WRN(x) x
-#if DBG_LVL > 2
-#define INF(x) x
-#endif // DBG_LVL > 2
-#endif // DBG_LVL > 1
+	#define ERR(x) x
+
+	#if DBG_LVL > 1
+		#define WRN(x) x
+
+		#if DBG_LVL > 2
+			#define INF(x) x
+		#else // DBG_LVL > 2
+			#define INF(x) 
+		#endif // DBG_LVL > 2
+
+	#else // DBG_LVL > 1
+		#define WRN(x) 
+		#define INF(x) 
+	#endif // DBG_LVL > 1
+
+#else // DBG_LVL > 0
+	#define ERR(x) 
+	#define WRN(x) 
+	#define INF(x) 
 #endif // DBG_LVL > 0

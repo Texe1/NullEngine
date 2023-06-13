@@ -22,7 +22,8 @@
     <ClInclude Include="utils\typedef.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="renderer\Renderer-Vulkan.ixx" />
+    <ClCompile Include="renderer\Renderer.Vulkan-CfgStructs.ixx" />
+    <ClCompile Include="renderer\Renderer.Vulkan.ixx" />
     <ClCompile Include="renderer\Renderer.ixx" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

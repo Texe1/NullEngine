@@ -1,3 +1,3 @@
 export module Renderer;
 
-export import :Vulkan;
+export import Renderer.Vulkan;

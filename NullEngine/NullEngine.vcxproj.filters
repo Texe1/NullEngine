@@ -23,7 +23,10 @@
     <ClCompile Include="renderer\Renderer.ixx">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="renderer\Renderer-Vulkan.ixx">
+    <ClCompile Include="renderer\Renderer.Vulkan.ixx">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer\Renderer.Vulkan-CfgStructs.ixx">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

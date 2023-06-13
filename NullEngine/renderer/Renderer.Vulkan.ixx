@@ -1,53 +1,17 @@
-#include <vulkan/vulkan.h>
-#include <SDL2/SDL.h>
 #include "../utils/typedef.h"
+export module Renderer.Vulkan;
 
-export module Renderer:Vulkan;
+import :CfgStructs;
+
+import <vulkan/vulkan.h>;
+import <SDL2/SDL.h>;
 
 namespace render {
 	namespace vulkan {
 		export class VkContext
 		{
 		public:
-			struct VkInstCfg {
-				struct {
-					u32 n;
-					u32 nRequired;
-					const char** names;
-				} extensions;
-				struct {
-					u32 n;
-					u32 nRequired;
-					const char** names;
-				} layers;
-			};
-
-			struct VkDvcCfg {
-				struct {
-					u32 n;
-					u32 nRequired;
-					const char** names;
-				} extensions;
-				struct {
-					u32 n;
-					u32 nRequired;
-					const char** names;
-				} layers;
-
-				static enum Flags {
-					createQueuesGraphics = 1,
-					createQueuesCompute = 2,
-				};
-
-				VkPhysicalDeviceType prefered_type;
-
-				Flags flags;
-
-				const i64 ratePhysicalDevice(VkPhysicalDevice, VkSurfaceKHR);
-			};
 		private:
-			static const VkInstCfg defaultInstCfg;
-			static const VkDvcCfg defaultDvcCfg;
 
 			// Vulkan stuff
 			VkInstance inst = NULL;
@@ -58,9 +22,9 @@ namespace render {
 			// SDL window
 			SDL_Window* wnd;
 		public:
-			VkContext(const VkInstCfg&, const VkDvcCfg&);
-			VkContext(const VkInstCfg& instCfg) : VkContext(instCfg, defaultDvcCfg) {}
-			VkContext() : VkContext(defaultInstCfg) {}
+			VkContext(VkInstCfg&, VkDvcCfg&);
+			VkContext(VkInstCfg& instCfg) : VkContext((VkInstCfg&)instCfg, (VkDvcCfg&)VkDvcCfg::defaultCfg) {}
+			VkContext() : VkContext(VkInstCfg::defaultCfg) {}
 			~VkContext();
 
 		private:
@@ -70,15 +34,19 @@ namespace render {
 	} // namespace vulkan
 } // namespace render
 
-using namespace render::vulkan;
+module :private;
 
+using namespace render::vulkan;
+/*
 const char* defaultInstExt[] = {"VK_KHR_surface", "VK_KHR_win32_surface"};
 const char* defaultInstLayers[] = { "VK_LAYER_KHRONOS_validation" };
 
 const char* defaultDvcExt[] = { "VK_KHR_swapchain" };
 const char* defaultDvcLayers[] = { "" };
+*/
 
-const VkContext::VkInstCfg VkContext::defaultInstCfg{
+/*
+const VkInstCfg VkContext::defaultInstCfg{
 	{2,2,defaultInstExt},
 #ifdef _DEBUG
 	{1,1, defaultInstLayers},
@@ -86,32 +54,32 @@ const VkContext::VkInstCfg VkContext::defaultInstCfg{
 	{0,0,0},
 #endif // _DEBUG
 };
-const VkContext::VkDvcCfg VkContext::defaultDvcCfg{
+const VkDvcCfg VkContext::defaultDvcCfg{
 	// extensions
 	{1,1,defaultDvcExt},
 	// layers
 	{0,0,0},
 	VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU,
-	VkContext::VkDvcCfg::Flags::createQueuesGraphics,
+	VkDvcCfg::Flags::createQueuesGraphics,
 };
+*/
 
-#include "../utils/typedef.h";
+import <SDL2/SDL.h>;
+import <vulkan/vulkan.h>;
+import <SDL2/SDL_vulkan.h>;
 
 import <stdio.h>;
 import <stdlib.h>;
 import <string.h>;
 import <stdexcept>;
 
-import <SDL2/SDL_vulkan.h>;
-
-
-VkContext::VkContext(const VkInstCfg& instCfg, const VkDvcCfg& dvcCfg) {
-	initInstance(instCfg);
+VkContext::VkContext(VkInstCfg& instCfg, VkDvcCfg& dvcCfg) {
+	this->initInstance(instCfg);
 
 	this->wnd = SDL_CreateWindow("Window", 0, 0, 800, 600, SDL_WINDOW_VULKAN);
 	SDL_Vulkan_CreateSurface(this->wnd, this->inst, &(this->surface));
 
-	initdevice((VkDvcCfg*)&dvcCfg);
+	this->initdevice((VkDvcCfg*)&dvcCfg);
 }
 
 VkContext::~VkContext()
@@ -429,174 +397,4 @@ void VkContext::initdevice(VkDvcCfg* cfg) {
 		vkCreateDevice(this->physicalDevice, &info, NULL, &(this->logicalDevice));
 	}
 
-}
-
-const i64 VkContext::VkDvcCfg::ratePhysicalDevice(VkPhysicalDevice dvc, VkSurfaceKHR surface) {
-
-	i64 score = 0;
-
-	// extensions
-	if(this->extensions.n) {
-		u32 nAvailableExt = 0;
-		VkExtensionProperties* availableExtensions = NULL;
-		{
-			vkEnumerateDeviceExtensionProperties(dvc, NULL, &nAvailableExt, NULL);
-			if (nAvailableExt < this->extensions.nRequired)
-				return -1;
-
-			if (nAvailableExt > 0) {
-				availableExtensions = (VkExtensionProperties*)malloc(sizeof(VkExtensionProperties) * nAvailableExt);
-				vkEnumerateDeviceExtensionProperties(dvc, NULL, &nAvailableExt, availableExtensions);
-			}
-		}
-
-		if (nAvailableExt && availableExtensions) {
-
-			// checking required Extensions
-			{
-				u32 i = 0;
-				for (; i < this->extensions.nRequired; i++) {
-					u32 j = 0;
-					for (; j < nAvailableExt; j++) {
-						if (!strcmp(this->extensions.names[i], availableExtensions[j].extensionName))
-							break;
-					}
-					if (j == nAvailableExt)
-						break;
-				}
-				if (i < this->extensions.nRequired) {
-					free(availableExtensions);
-					return -1;
-				}
-			}
-
-			// checking optional extensions
-			{
-
-				for (u32 i = this->extensions.nRequired; i < this->extensions.n; i++) {
-					for (u32 j = 0; j < nAvailableExt; j++) {
-						if (!strcmp(this->extensions.names[i], availableExtensions[j].extensionName)) {
-							score += nAvailableExt - i;
-							break;
-						}
-					}
-				}
-			}
-
-		}
-	}
-
-	// layers
-	if(this->layers.n) {
-
-		// getting available layers
-		u32 nAvailableLayers = 0;
-		VkLayerProperties* availableLayers = NULL;
-		{
-			vkEnumerateDeviceLayerProperties(dvc, &nAvailableLayers, NULL);
-			if (nAvailableLayers) {
-				availableLayers = (VkLayerProperties*)malloc(sizeof(VkLayerProperties) * nAvailableLayers);
-				vkEnumerateDeviceLayerProperties(dvc, &nAvailableLayers, availableLayers);
-			}
-		}
-
-		if (nAvailableLayers && availableLayers) {
-			// checking required Layers
-			{
-				u32 i = 0;
-				for (; i < this->layers.nRequired; i++) {
-					u32 j = 0;
-					for (; j < nAvailableLayers; j++) {
-						if (!strcmp(this->layers.names[i], availableLayers[j].layerName))
-							break;
-					}
-					if (j == nAvailableLayers)
-						break;
-				}
-				if (i < this->layers.nRequired) {
-					free(availableLayers);
-					return -1;
-				}
-			}
-
-			// checking optional layers
-			{
-
-				for (u32 i = this->layers.nRequired; i < this->layers.n; i++) {
-					for (u32 j = 0; j < nAvailableLayers; j++) {
-						if (!strcmp(this->layers.names[i], availableLayers[j].layerName)) {
-							score += nAvailableLayers - i;
-							break;
-						}
-					}
-				}
-			}
-		}
-
-	}
-
-	VkPhysicalDeviceProperties props;
-	vkGetPhysicalDeviceProperties(dvc, &props);
-	if (props.deviceType == this->prefered_type) {
-		score += 4; // Don't know abt. this exact number, but sure, why not
-	}
-
-	// Queue Families
-	{
-		u32 nQueueFams = 0;
-		VkQueueFamilyProperties* queueFams;
-
-		vkGetPhysicalDeviceQueueFamilyProperties(dvc, &nQueueFams, NULL);
-		if (nQueueFams == 0)
-			return -1;
-
-		queueFams = (VkQueueFamilyProperties*)malloc(sizeof(VkQueueFamilyProperties) * nQueueFams);
-		vkGetPhysicalDeviceQueueFamilyProperties(dvc, &nQueueFams, queueFams);
-
-
-		u8 foundPresentFamily = 0;
-		u8 foundGraphicsFamily = 0;
-		u8 foundGraphicsAndPresentFam = 0;
-		u8 foundComputeFamily = 0;
-		u8 foundComputeAndPresentFam = 0;
-
-		u32 i = 0;
-		for (u32 i = 0; i < nQueueFams; i++) {
-
-			u32 presentSupport = 0;
-			vkGetPhysicalDeviceSurfaceSupportKHR(dvc, i, surface, &presentSupport);
-
-			if (presentSupport) {
-				foundPresentFamily = 1;
-			}
-
-			if (queueFams[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-				foundGraphicsFamily = 1;
-				if (presentSupport) {
-					foundGraphicsAndPresentFam = 1;
-				}
-			}
-
-			if (queueFams[i].queueFlags & VK_QUEUE_COMPUTE_BIT) {
-				foundComputeFamily = 1;
-			}
-		}
-
-		u8 searchGraphicsFamily = (this->flags & Flags::createQueuesGraphics) ? 1 : 0;
-		u8 searchComputeFamily = (this->flags & Flags::createQueuesCompute) ? 1 : 0;
-
-		if (searchGraphicsFamily && foundGraphicsAndPresentFam) {
-			score += 2;
-		}
-		if (searchComputeFamily && foundComputeAndPresentFam) {
-			score += 2;
-		}
-
-		if (searchComputeFamily && !foundComputeFamily)
-			return - 1;
-		if (searchGraphicsFamily && !foundGraphicsFamily)
-			return -1;
-	}
-
-	return score;
 }
