@@ -6,8 +6,8 @@ import :CfgStructs;
 import <vulkan/vulkan.h>;
 import <SDL2/SDL.h>;
 
-namespace render {
-	namespace vulkan {
+export namespace render {
+	export namespace vulkan {
 		export class VkContext
 		{
 		public:
@@ -18,6 +18,26 @@ namespace render {
 			VkDevice logicalDevice = NULL;
 			VkPhysicalDevice physicalDevice = NULL;
 			VkSurfaceKHR surface;
+			struct {
+				struct {
+					i32 present;
+					i32 graphics;
+					i32 compute;
+				} families;
+
+				VkQueue* present;
+				VkQueue* graphics;
+				VkQueue* compute;
+			} queues;
+			struct {
+				VkSwapchainKHR swapchain;
+				u32 nImgs;
+				VkImage* imgs;
+				u32 width;
+				u32 height;
+				VkFormat format;
+				VkColorSpaceKHR colorSpace;
+			} swapchain;
 
 			// SDL window
 			SDL_Window* wnd;
@@ -28,41 +48,13 @@ namespace render {
 			~VkContext();
 
 		private:
+			void addSwapchain();
 			void initInstance(const VkInstCfg&);
 			void initdevice(VkDvcCfg*);
 		};
 	} // namespace vulkan
 } // namespace render
-
 module :private;
-
-using namespace render::vulkan;
-/*
-const char* defaultInstExt[] = {"VK_KHR_surface", "VK_KHR_win32_surface"};
-const char* defaultInstLayers[] = { "VK_LAYER_KHRONOS_validation" };
-
-const char* defaultDvcExt[] = { "VK_KHR_swapchain" };
-const char* defaultDvcLayers[] = { "" };
-*/
-
-/*
-const VkInstCfg VkContext::defaultInstCfg{
-	{2,2,defaultInstExt},
-#ifdef _DEBUG
-	{1,1, defaultInstLayers},
-#else
-	{0,0,0},
-#endif // _DEBUG
-};
-const VkDvcCfg VkContext::defaultDvcCfg{
-	// extensions
-	{1,1,defaultDvcExt},
-	// layers
-	{0,0,0},
-	VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU,
-	VkDvcCfg::Flags::createQueuesGraphics,
-};
-*/
 
 import <SDL2/SDL.h>;
 import <vulkan/vulkan.h>;
@@ -73,6 +65,8 @@ import <stdlib.h>;
 import <string.h>;
 import <stdexcept>;
 
+using namespace render::vulkan;
+
 VkContext::VkContext(VkInstCfg& instCfg, VkDvcCfg& dvcCfg) {
 	this->initInstance(instCfg);
 
@@ -80,10 +74,32 @@ VkContext::VkContext(VkInstCfg& instCfg, VkDvcCfg& dvcCfg) {
 	SDL_Vulkan_CreateSurface(this->wnd, this->inst, &(this->surface));
 
 	this->initdevice((VkDvcCfg*)&dvcCfg);
+
+	if (dvcCfg.flags & VkDvcCfg::Flags::createQueuesGraphics) {
+		this->addSwapchain();
+	}
 }
 
 VkContext::~VkContext()
 {
+	vkDeviceWaitIdle(this->logicalDevice);
+
+	if (this->swapchain.imgs)free(this->swapchain.imgs);
+
+	INF(printf("destroying vulkan swapchain...\n"));
+	if (this->swapchain.swapchain)vkDestroySwapchainKHR(this->logicalDevice, this->swapchain.swapchain, NULL);
+
+	if (this->queues.present)free(this->queues.present);
+	if (this->queues.graphics) {
+		if(this->queues.graphics != this->queues.present)		
+			free(this->queues.graphics);
+	}
+	if (this->queues.compute) {
+		if ((this->queues.compute != this->queues.present)
+			&& (this->queues.compute != this->queues.graphics))
+			free(this->queues.compute);
+	}
+
 	INF(printf("destroying vulkan device...\n"));
 	if (this->logicalDevice)vkDestroyDevice(this->logicalDevice, NULL);
 	INF(printf("destroying vulkan surface...\n"));
@@ -339,6 +355,10 @@ void VkContext::initdevice(VkDvcCfg* cfg) {
 			}
 		}
 
+		this->queues.families.present = presentFam;
+		this->queues.families.graphics = graphicsFam;
+		this->queues.families.compute = computeFam;
+
 		// createInfo for present queue
 		{
 			queueInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -397,4 +417,119 @@ void VkContext::initdevice(VkDvcCfg* cfg) {
 		vkCreateDevice(this->physicalDevice, &info, NULL, &(this->logicalDevice));
 	}
 
+	// getting Device Queues
+	{
+		this->queues.present = NULL;
+		this->queues.graphics = NULL;
+		this->queues.compute = NULL;
+
+		if (this->queues.families.present >= 0) {
+			this->queues.present = (VkQueue*)malloc(sizeof(VkQueue));
+			vkGetDeviceQueue(this->logicalDevice, this->queues.families.present, 0, this->queues.present);
+		}
+
+		if (this->queues.families.graphics >= 0) {
+			if (this->queues.families.graphics == this->queues.families.present) {
+				this->queues.graphics = this->queues.present;
+			}
+			else {
+
+				this->queues.graphics = (VkQueue*)malloc(sizeof(VkQueue));
+				vkGetDeviceQueue(this->logicalDevice, this->queues.families.graphics, 0, this->queues.graphics);
+			}
+		}
+
+		if (this->queues.families.compute >= 0) {
+			if (this->queues.families.compute == this->queues.families.present) {
+				this->queues.compute = this->queues.present;
+			}
+			else if (this->queues.families.compute == this->queues.families.graphics) {
+				this->queues.compute = this->queues.graphics;
+			}
+			else {
+				this->queues.compute = (VkQueue*)malloc(sizeof(VkQueue));
+				vkGetDeviceQueue(this->logicalDevice, this->queues.families.compute, 0, this->queues.compute);
+			}
+		}
+	}
+
+}
+
+void VkContext::addSwapchain() {
+	if (this->queues.families.present != this->queues.families.graphics) {
+		throw new std::runtime_error("present and graphics queue Are different, handling this is currently not supported");
+		return;
+	}
+
+
+	VkSurfaceFormatKHR format = {};
+	{
+		u32 nFormats = 0;
+		VkSurfaceFormatKHR* surfaceFormats = NULL;
+		vkGetPhysicalDeviceSurfaceFormatsKHR(this->physicalDevice, this->surface, &nFormats, NULL);
+		if (nFormats) { // Note: nFormats will essentially always be > 0
+			surfaceFormats = (VkSurfaceFormatKHR*)malloc(sizeof(VkSurfaceFormatKHR) * nFormats);
+			vkGetPhysicalDeviceSurfaceFormatsKHR(this->physicalDevice, this->surface, &nFormats, surfaceFormats);
+			format = surfaceFormats[0];
+			free(surfaceFormats);
+		}
+		else {
+			throw new std::runtime_error("No surface Formats available for chosen physical Device.");
+			return;
+		}
+	}
+
+	VkExtent2D surfaceExtent = {};
+	u32 minImgCount = 3;
+	{
+		VkSurfaceCapabilitiesKHR surfaceCaps;
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->physicalDevice, this->surface, &surfaceCaps);
+
+		if (surfaceCaps.maxImageCount) minImgCount = MIN(surfaceCaps.maxImageCount, minImgCount);
+		minImgCount = MAX(minImgCount, surfaceCaps.minImageCount);
+		surfaceExtent = surfaceCaps.currentExtent;
+
+		if (surfaceExtent.width == 0xffffffff) {
+			surfaceExtent.width = surfaceCaps.minImageExtent.width;
+		}
+		if (surfaceExtent.height == 0xffffffff) {
+			surfaceExtent.height = surfaceCaps.minImageExtent.height;
+		}
+	}
+
+	// creating Swapchain
+	{
+		VkSwapchainCreateInfoKHR info{};
+		info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+		info.surface = this->surface;
+		info.minImageCount = minImgCount;
+		info.imageFormat = format.format;
+		info.imageColorSpace = format.colorSpace;
+		info.imageExtent = surfaceExtent;
+		info.imageArrayLayers = 1;
+		info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		info.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+		info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+		info.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+		vkCreateSwapchainKHR(this->logicalDevice, &info, 0, &(this->swapchain.swapchain));
+	}
+
+	// getting information about the created Swapchain
+	{
+		this->swapchain.format = format.format;
+		this->swapchain.colorSpace = format.colorSpace;
+
+		this->swapchain.width = surfaceExtent.width;
+		this->swapchain.height = surfaceExtent.height;
+
+		vkGetSwapchainImagesKHR(this->logicalDevice, this->swapchain.swapchain, &(this->swapchain.nImgs), NULL);
+		if (this->swapchain.nImgs > 0) {
+			this->swapchain.imgs = (VkImage*)malloc(sizeof(VkImage) * this->swapchain.nImgs);
+			vkGetSwapchainImagesKHR(this->logicalDevice, this->swapchain.swapchain, &(this->swapchain.nImgs), this->swapchain.imgs);
+		}
+		else {
+			this->swapchain.imgs = 0;
+		}
+	}
 }

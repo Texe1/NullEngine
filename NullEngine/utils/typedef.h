@@ -12,6 +12,9 @@ typedef int16_t i16;
 typedef int32_t i32;
 typedef int64_t i64;
 
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+
 #ifdef _DEBUG
 #ifndef DBG_LVL
 #define DBG_LVL 3

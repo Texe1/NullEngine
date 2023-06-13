@@ -34,7 +34,7 @@ namespace render {
 				const char** names;
 			} layers;
 
-			static enum Flags {
+			enum Flags {
 				createQueuesGraphics = 1,
 				createQueuesCompute = 2,
 			};
