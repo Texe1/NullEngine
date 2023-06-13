@@ -23,8 +23,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="renderer\Renderer.Vulkan-CfgStructs.ixx" />
+    <ClCompile Include="renderer\Renderer.Vulkan-Init.cpp" />
+    <ClCompile Include="renderer\Renderer.Vulkan-Renderpass.cpp" />
+    <ClCompile Include="renderer\Renderer.Vulkan-Swapchain.cpp" />
     <ClCompile Include="renderer\Renderer.Vulkan.ixx" />
     <ClCompile Include="renderer\Renderer.ixx" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="renderer\Renderer.Vulkan-CmdPool.ixx" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

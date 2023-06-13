@@ -29,5 +29,17 @@
     <ClCompile Include="renderer\Renderer.Vulkan-CfgStructs.ixx">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="renderer\Renderer.Vulkan-Init.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer\Renderer.Vulkan-Swapchain.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer\Renderer.Vulkan-Renderpass.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="renderer\Renderer.Vulkan-CmdPool.ixx" />
   </ItemGroup>
 </Project>

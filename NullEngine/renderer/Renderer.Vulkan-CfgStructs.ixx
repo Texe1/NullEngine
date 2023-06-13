@@ -1,6 +1,6 @@
-#include "../utils/typedef.h"
-
 export module Renderer.Vulkan:CfgStructs;
+
+#include "../utils/typedef.h"
 
 import <vulkan/vulkan.h>;
 
@@ -256,4 +256,3 @@ i64 VkDvcCfg::ratePhysicalDevice(VkPhysicalDevice dvc, VkSurfaceKHR surface) {
 
 	return score;
 }
-
