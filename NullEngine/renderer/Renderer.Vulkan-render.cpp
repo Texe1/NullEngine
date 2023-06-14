@@ -18,7 +18,11 @@ int VkContext::render() {
 	// actual rendering
 	{
 		u32 imgIdx = 0;
-		vkAcquireNextImageKHR(this->logicalDevice, this->swapchain.swapchain, 0xffffffffffffffff, 0, this->sync.inFlightFence, &imgIdx);
+		vkAcquireNextImageKHR(this->logicalDevice, this->swapchain.swapchain, 0xffffffffffffffff, this->sync.acquireSemaphore, 0, &imgIdx);
+
+
+		vkWaitForFences(this->logicalDevice, 1, &(this->sync.inFlightFence), 1U, 0xffffffffffffffff);
+		vkResetFences(this->logicalDevice, 1, &(this->sync.inFlightFence));
 
 		vkResetCommandPool(this->logicalDevice, this->commandPool.handle, 0);
 
@@ -48,20 +52,29 @@ int VkContext::render() {
 		}
 		vkEndCommandBuffer(cmdBuf);
 
-		vkWaitForFences(this->logicalDevice, 1, &(this->sync.inFlightFence), 1U, 0xffffffffffffffff);
-		vkResetFences(this->logicalDevice, 1, &(this->sync.inFlightFence));
+		VkPipelineStageFlags waitMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
 		VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &(this->commandPool.buffers[0]);
-		vkQueueSubmit(this->queues.graphics[0], 1, &submitInfo, 0);
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = &this->sync.acquireSemaphore;
+		submitInfo.pWaitDstStageMask = &waitMask;
 
-		vkDeviceWaitIdle(this->logicalDevice);
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = &this->sync.releaseSemaphore;
+
+		vkQueueSubmit(this->queues.graphics[0], 1, &submitInfo, this->sync.inFlightFence);
+
+		//vkWaitForFences(this->logicalDevice, 1, &(this->sync.inFlightFence), 1U, 0xffffffffffffffff);
+		//vkResetFences(this->logicalDevice, 1, &(this->sync.inFlightFence));
 
 		VkPresentInfoKHR presentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = &(this->swapchain.swapchain);
 		presentInfo.pImageIndices = &imgIdx;
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = &this->sync.releaseSemaphore;
 		vkQueuePresentKHR(this->queues.graphics[0], &presentInfo);
 	}
 	return 1;

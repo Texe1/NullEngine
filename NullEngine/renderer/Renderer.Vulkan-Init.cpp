@@ -54,7 +54,14 @@ VkContext::VkContext(VkInstCfg& instCfg, VkDvcCfg& dvcCfg) {
 		this->addCommandPool();
 		{
 			VkFenceCreateInfo info{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+			info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 			vkCreateFence(this->logicalDevice, &info, 0, &(this->sync.inFlightFence));
+		}
+
+		{
+			VkSemaphoreCreateInfo info{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+			vkCreateSemaphore(this->logicalDevice, &info, 0, &(this->sync.acquireSemaphore));
+			vkCreateSemaphore(this->logicalDevice, &info, 0, &(this->sync.releaseSemaphore));
 		}
 
 		this->addPipeline();

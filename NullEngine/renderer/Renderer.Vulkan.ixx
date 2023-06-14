@@ -57,6 +57,8 @@ export namespace render {
 
 			struct {
 				VkFence inFlightFence;
+				VkSemaphore acquireSemaphore;
+				VkSemaphore releaseSemaphore;
 			} sync;
 
 			// SDL window
