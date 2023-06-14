@@ -1,3 +1,5 @@
+module;
+
 #include "../utils/typedef.h"
 
 module Renderer.Vulkan;

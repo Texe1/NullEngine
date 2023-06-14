@@ -1,4 +1,7 @@
+module;
+
 #include "../utils/typedef.h"
+#include "SDL2/SDL.h"
 
 module Renderer.Vulkan;
 
@@ -7,7 +10,8 @@ using namespace render::vulkan;
 VkContext::VkContext(VkInstCfg& instCfg, VkDvcCfg& dvcCfg) {
 	this->initInstance(instCfg);
 
-	this->wnd = SDL_CreateWindow("Window", 0, 0, 800, 600, SDL_WINDOW_VULKAN);
+	SDL_Init(SDL_INIT_VIDEO);
+	this->wnd = SDL_CreateWindow("Window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_VULKAN);
 	SDL_Vulkan_CreateSurface(this->wnd, this->inst, &(this->surface));
 
 	this->initdevice((VkDvcCfg*)&dvcCfg);
@@ -102,6 +106,8 @@ VkContext::~VkContext()
 	if (this->surface)vkDestroySurfaceKHR(this->inst, this->surface, 0);
 	INF(printf("destroying vulkan instance...\n"));
 	if (this->inst)vkDestroyInstance(this->inst, 0);
+
+	SDL_Quit();
 }
 
 void VkContext::initInstance(const VkInstCfg& instCfg) {
@@ -298,7 +304,7 @@ void VkContext::initdevice(VkDvcCfg* cfg) {
 	// queues
 	float queuePriority = 1.0f;
 	u32 nQueueInfos = 0;
-	VkDeviceQueueCreateInfo queueInfos[3];
+	VkDeviceQueueCreateInfo queueInfos[3]{};
 	{
 		u32 nQueueFams = 0;
 		VkQueueFamilyProperties* queueFams;
