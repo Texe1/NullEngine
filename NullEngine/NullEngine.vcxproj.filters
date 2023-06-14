@@ -44,5 +44,15 @@
     <ClCompile Include="renderer\Renderer.Vulkan-Swapchain.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="renderer\Renderer.Vulkan-Pipeline.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\vert.glsl" />
+    <None Include="shaders\frag.glsl" />
+    <None Include="shaders\compileShaders.bat">
+      <Filter>Quelldateien</Filter>
+    </None>
   </ItemGroup>
 </Project>

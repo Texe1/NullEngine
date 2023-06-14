@@ -28,7 +28,7 @@ int VkContext::render() {
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 		vkBeginCommandBuffer(cmdBuf, &beginInfo);
 		{
-			VkClearValue clarVal = { .color = {1.0f, 0.0f, 1.0f, 1.0f} };
+			VkClearValue clearVal = { .color = {0.0f, 0.0f, 0.1f, 1.0f} };
 
 			VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 			renderPassBeginInfo.renderPass = this->renderPass.renderPass;
@@ -36,14 +36,13 @@ int VkContext::render() {
 			renderPassBeginInfo.renderArea = { {0,0}, {this->swapchain.width, this->swapchain.height} };
 
 			renderPassBeginInfo.clearValueCount = 1;
-			renderPassBeginInfo.pClearValues = &clarVal;
+			renderPassBeginInfo.pClearValues = &clearVal;
 
 			vkCmdBeginRenderPass(cmdBuf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 			{
-				/* TODO #009 26:11
-				 * https://www.youtube.com/watch?v=nmRwMieG8NM&list=PLStQc0GqppuXgs6do23v_HKRrR32gJMm3&index=10
-				 */
-				// TODO #009
+				vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipeline.handle);
+
+				vkCmdDraw(cmdBuf, 3, 1, 0, 0);
 			}
 			vkCmdEndRenderPass(cmdBuf);
 		}

@@ -1,6 +1,7 @@
 module;
 
 #include "../utils/typedef.h"
+#define SDL_MAIN_HANDLED
 #include "SDL2/SDL.h"
 
 module Renderer.Vulkan;
@@ -56,6 +57,7 @@ VkContext::VkContext(VkInstCfg& instCfg, VkDvcCfg& dvcCfg) {
 			vkCreateFence(this->logicalDevice, &info, 0, &(this->sync.inFlightFence));
 		}
 
+		this->addPipeline();
 	}
 }
 
@@ -63,7 +65,10 @@ VkContext::~VkContext()
 {
 	vkDeviceWaitIdle(this->logicalDevice);
 
-	vkDestroyFence(this->logicalDevice, this->sync.inFlightFence, 0);
+	if (this->pipeline.handle)vkDestroyPipeline(this->logicalDevice, this->pipeline.handle, 0);
+	if (this->pipeline.layout)vkDestroyPipelineLayout(this->logicalDevice, this->pipeline.layout, 0);
+
+	if(this->sync.inFlightFence)vkDestroyFence(this->logicalDevice, this->sync.inFlightFence, 0);
 
 	if (this->commandPool.handle) {
 		vkFreeCommandBuffers(this->logicalDevice, this->commandPool.handle, 1, this->commandPool.buffers);

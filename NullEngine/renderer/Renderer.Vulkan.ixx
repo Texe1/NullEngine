@@ -49,6 +49,11 @@ export namespace render {
 				u32 nBuffers;
 				VkCommandBuffer* buffers;
 			} commandPool;
+			struct {
+				VkPipeline handle;
+				VkPipelineLayout layout;
+
+			} pipeline;
 
 			struct {
 				VkFence inFlightFence;
@@ -71,6 +76,7 @@ export namespace render {
 			void addSwapchain();
 			void addRenderPass();
 			void addCommandPool();
+			void addPipeline();
 		};
 	} // namespace vulkan
 } // namespace render
