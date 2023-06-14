@@ -21,6 +21,16 @@
   <ItemGroup>
     <ClInclude Include="utils\typedef.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="renderer\Renderer.ixx" />
+    <ClCompile Include="renderer\Renderer.Vulkan-CfgStructs.ixx" />
+    <ClCompile Include="renderer\Renderer.Vulkan-CmdPool.cpp" />
+    <ClCompile Include="renderer\Renderer.Vulkan-Init.cpp" />
+    <ClCompile Include="renderer\Renderer.Vulkan-render.cpp" />
+    <ClCompile Include="renderer\Renderer.Vulkan-Renderpass.cpp" />
+    <ClCompile Include="renderer\Renderer.Vulkan-Swapchain.cpp" />
+    <ClCompile Include="renderer\Renderer.Vulkan.ixx" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
