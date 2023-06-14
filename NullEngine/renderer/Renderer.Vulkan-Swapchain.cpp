@@ -14,8 +14,8 @@ void VkContext::addSwapchain() {
 	VkSurfaceFormatKHR format = {};
 	{
 		u32 nFormats = 0;
-		VkSurfaceFormatKHR* surfaceFormats = NULL;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(this->physicalDevice, this->surface, &nFormats, NULL);
+		VkSurfaceFormatKHR* surfaceFormats = 0;
+		vkGetPhysicalDeviceSurfaceFormatsKHR(this->physicalDevice, this->surface, &nFormats, 0);
 		if (nFormats) { // Note: nFormats will essentially always be > 0
 			surfaceFormats = (VkSurfaceFormatKHR*)malloc(sizeof(VkSurfaceFormatKHR) * nFormats);
 			vkGetPhysicalDeviceSurfaceFormatsKHR(this->physicalDevice, this->surface, &nFormats, surfaceFormats);
@@ -72,7 +72,7 @@ void VkContext::addSwapchain() {
 		this->swapchain.width = surfaceExtent.width;
 		this->swapchain.height = surfaceExtent.height;
 
-		vkGetSwapchainImagesKHR(this->logicalDevice, this->swapchain.swapchain, &(this->swapchain.nImgs), NULL);
+		vkGetSwapchainImagesKHR(this->logicalDevice, this->swapchain.swapchain, &(this->swapchain.nImgs), 0);
 		if (this->swapchain.nImgs > 0) {
 			this->swapchain.imgs = (VkImage*)malloc(sizeof(VkImage) * this->swapchain.nImgs);
 			vkGetSwapchainImagesKHR(this->logicalDevice, this->swapchain.swapchain, &(this->swapchain.nImgs), this->swapchain.imgs);

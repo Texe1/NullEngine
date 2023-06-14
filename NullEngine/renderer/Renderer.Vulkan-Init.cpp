@@ -15,7 +15,6 @@ VkContext::VkContext(VkInstCfg& instCfg, VkDvcCfg& dvcCfg) {
 	if (dvcCfg.flags & VkDvcCfg::Flags::createQueuesGraphics) {
 		this->addSwapchain();
 		this->addRenderPass();
-
 		// creating Frambuffers, temporary
 		{
 
@@ -47,12 +46,20 @@ VkContext::VkContext(VkInstCfg& instCfg, VkDvcCfg& dvcCfg) {
 			}
 		}
 
+		this->addCommandPool();
+		{
+			VkFenceCreateInfo info{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+			vkCreateFence(this->logicalDevice, &info, 0, &(this->sync.inFlightFence));
+		}
+
 	}
 }
 
 VkContext::~VkContext()
 {
 	vkDeviceWaitIdle(this->logicalDevice);
+
+	vkDestroyFence(this->logicalDevice, this->sync.inFlightFence, 0);
 
 	if (this->commandPool.handle) {
 		vkFreeCommandBuffers(this->logicalDevice, this->commandPool.handle, 1, this->commandPool.buffers);

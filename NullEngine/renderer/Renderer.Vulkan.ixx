@@ -50,6 +50,10 @@ export namespace render {
 				VkCommandBuffer* buffers;
 			} commandPool;
 
+			struct {
+				VkFence inFlightFence;
+			} sync;
+
 			// SDL window
 			SDL_Window* wnd;
 		public:
