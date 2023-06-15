@@ -3,7 +3,7 @@ import Renderer;
 
 int main() {
 	printf("startup...\n");
-	render::vulkan::VkContext ctx = render::vulkan::VkContext();
+	render::vulkan::VulkanRenderer ctx = render::vulkan::VulkanRenderer();
 
 	while (ctx.render());
 

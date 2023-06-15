@@ -1,6 +1,10 @@
-export module Renderer.Vulkan:CfgStructs;
+module;
 
 #include "../utils/typedef.h"
+#define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
+
+export module Renderer.Vulkan:CfgStructs;
 
 import <vulkan/vulkan.h>;
 

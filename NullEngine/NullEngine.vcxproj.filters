@@ -44,7 +44,10 @@
     <ClCompile Include="renderer\Renderer.Vulkan-Swapchain.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="renderer\Renderer.Vulkan-Pipeline.cpp">
+    <ClCompile Include="renderer\Renderer.Vulkan-pipeline.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer\Renderer.Vulkan-Context.ixx">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

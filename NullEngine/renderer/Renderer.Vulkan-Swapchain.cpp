@@ -6,8 +6,8 @@ module Renderer.Vulkan;
 
 using namespace render::vulkan;
 
-void VkContext::addSwapchain() {
-	if (this->queues.families.present != this->queues.families.graphics) {
+void VulkanRenderer::addSwapchain() {
+	if (ctx->dvc.queues.present.family != ctx->dvc.queues.graphics.family) {
 		throw new std::runtime_error("present and graphics queue Are different, handling this is currently not supported");
 		return;
 	}
@@ -17,10 +17,17 @@ void VkContext::addSwapchain() {
 	{
 		u32 nFormats = 0;
 		VkSurfaceFormatKHR* surfaceFormats = 0;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(this->physicalDevice, this->surface, &nFormats, 0);
+		INF(
+			{
+				VkPhysicalDeviceProperties phDvcProps;
+				vkGetPhysicalDeviceProperties(ctx->dvc.phys, &phDvcProps);
+				printf(" > checking surface formats for '%s'\n", phDvcProps.deviceName);
+			}
+		);
+		VkResult res = vkGetPhysicalDeviceSurfaceFormatsKHR(ctx->dvc.phys, ctx->surface, &nFormats, 0);
 		if (nFormats) { // Note: nFormats will essentially always be > 0
 			surfaceFormats = (VkSurfaceFormatKHR*)malloc(sizeof(VkSurfaceFormatKHR) * nFormats);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(this->physicalDevice, this->surface, &nFormats, surfaceFormats);
+			vkGetPhysicalDeviceSurfaceFormatsKHR(ctx->dvc.phys, ctx->surface, &nFormats, surfaceFormats);
 			format = surfaceFormats[0];
 			free(surfaceFormats);
 		}
@@ -34,7 +41,7 @@ void VkContext::addSwapchain() {
 	u32 minImgCount = 3;
 	{
 		VkSurfaceCapabilitiesKHR surfaceCaps;
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->physicalDevice, this->surface, &surfaceCaps);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(ctx->dvc.phys, ctx->surface, &surfaceCaps);
 
 		if (surfaceCaps.maxImageCount) minImgCount = MIN(surfaceCaps.maxImageCount, minImgCount);
 		minImgCount = MAX(minImgCount, surfaceCaps.minImageCount);
@@ -52,7 +59,7 @@ void VkContext::addSwapchain() {
 	{
 		VkSwapchainCreateInfoKHR info{};
 		info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		info.surface = this->surface;
+		info.surface = ctx->surface;
 		info.minImageCount = minImgCount;
 		info.imageFormat = format.format;
 		info.imageColorSpace = format.colorSpace;
@@ -63,7 +70,7 @@ void VkContext::addSwapchain() {
 		info.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 		info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		info.presentMode = VK_PRESENT_MODE_FIFO_KHR;
-		vkCreateSwapchainKHR(this->logicalDevice, &info, 0, &(this->swapchain.swapchain));
+		vkCreateSwapchainKHR(ctx->dvc.logic, &info, 0, &(this->swapchain.swapchain));
 	}
 
 	// getting information about the created Swapchain
@@ -74,10 +81,10 @@ void VkContext::addSwapchain() {
 		this->swapchain.width = surfaceExtent.width;
 		this->swapchain.height = surfaceExtent.height;
 
-		vkGetSwapchainImagesKHR(this->logicalDevice, this->swapchain.swapchain, &(this->swapchain.nImgs), 0);
+		vkGetSwapchainImagesKHR(ctx->dvc.logic, this->swapchain.swapchain, &(this->swapchain.nImgs), 0);
 		if (this->swapchain.nImgs > 0) {
 			this->swapchain.imgs = (VkImage*)malloc(sizeof(VkImage) * this->swapchain.nImgs);
-			vkGetSwapchainImagesKHR(this->logicalDevice, this->swapchain.swapchain, &(this->swapchain.nImgs), this->swapchain.imgs);
+			vkGetSwapchainImagesKHR(ctx->dvc.logic, this->swapchain.swapchain, &(this->swapchain.nImgs), this->swapchain.imgs);
 		}
 		else {
 			this->swapchain.imgs = 0;

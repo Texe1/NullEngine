@@ -4,7 +4,7 @@ module Renderer.Vulkan;
 
 using namespace render::vulkan;
 
-int VkContext::render() {
+int VulkanRenderer::render() {
 	// SDL Messages
 	{
 		SDL_Event evt;
@@ -18,13 +18,13 @@ int VkContext::render() {
 	// actual rendering
 	{
 		u32 imgIdx = 0;
-		vkAcquireNextImageKHR(this->logicalDevice, this->swapchain.swapchain, 0xffffffffffffffff, this->sync.acquireSemaphore, 0, &imgIdx);
+		vkAcquireNextImageKHR(ctx->dvc.logic, this->swapchain.swapchain, 0xffffffffffffffff, this->sync.acquireSemaphore, 0, &imgIdx);
 
 
-		vkWaitForFences(this->logicalDevice, 1, &(this->sync.inFlightFence), 1U, 0xffffffffffffffff);
-		vkResetFences(this->logicalDevice, 1, &(this->sync.inFlightFence));
+		vkWaitForFences(ctx->dvc.logic, 1, &(this->sync.inFlightFence), 1U, 0xffffffffffffffff);
+		vkResetFences(ctx->dvc.logic, 1, &(this->sync.inFlightFence));
 
-		vkResetCommandPool(this->logicalDevice, this->commandPool.handle, 0);
+		vkResetCommandPool(ctx->dvc.logic, this->commandPool.handle, 0);
 
 		VkCommandBuffer cmdBuf = this->commandPool.buffers[0];
 
@@ -64,7 +64,7 @@ int VkContext::render() {
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = &this->sync.releaseSemaphore;
 
-		vkQueueSubmit(this->queues.graphics[0], 1, &submitInfo, this->sync.inFlightFence);
+		vkQueueSubmit(ctx->dvc.queues.graphics.queue[0], 1, &submitInfo, this->sync.inFlightFence);
 
 		//vkWaitForFences(this->logicalDevice, 1, &(this->sync.inFlightFence), 1U, 0xffffffffffffffff);
 		//vkResetFences(this->logicalDevice, 1, &(this->sync.inFlightFence));
@@ -75,7 +75,7 @@ int VkContext::render() {
 		presentInfo.pImageIndices = &imgIdx;
 		presentInfo.waitSemaphoreCount = 1;
 		presentInfo.pWaitSemaphores = &this->sync.releaseSemaphore;
-		vkQueuePresentKHR(this->queues.graphics[0], &presentInfo);
+		vkQueuePresentKHR(ctx->dvc.queues.graphics.queue[0], &presentInfo);
 	}
 	return 1;
 }

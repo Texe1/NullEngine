@@ -7,13 +7,13 @@ module Renderer.Vulkan;
 using namespace render::vulkan;
 
 // assumes the same queue family for present and graphics
-void VkContext::addCommandPool() {
+void VulkanRenderer::addCommandPool() {
 	{
 		VkCommandPoolCreateInfo info{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
 		info.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-		info.queueFamilyIndex = this->queues.families.present;
+		info.queueFamilyIndex = ctx->dvc.queues.present.family;
 
-		vkCreateCommandPool(this->logicalDevice, &info, 0, &(this->commandPool.handle));
+		vkCreateCommandPool(ctx->dvc.logic, &info, 0, &(this->commandPool.handle));
 	}
 
 	{
@@ -26,6 +26,6 @@ void VkContext::addCommandPool() {
 
 		info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
-		vkAllocateCommandBuffers(this->logicalDevice, &info, (this->commandPool.buffers));
+		vkAllocateCommandBuffers(ctx->dvc.logic, &info, (this->commandPool.buffers));
 	}
 }

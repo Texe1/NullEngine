@@ -4,7 +4,7 @@ using namespace render::vulkan;
 
 
 // This is subject to change, currently the simplest renderPass is created
-void VkContext::addRenderPass() {
+void VulkanRenderer::addRenderPass() {
 	VkRenderPassCreateInfo info { VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
 
 	VkAttachmentReference attachmentRef{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
@@ -31,5 +31,5 @@ void VkContext::addRenderPass() {
 	info.subpassCount = 1;
 	info.pSubpasses = &subPass; // <-
 
-	vkCreateRenderPass(this->logicalDevice, &info, NULL, &(this->renderPass.renderPass));
+	vkCreateRenderPass(ctx->dvc.logic, &info, NULL, &(this->renderPass.renderPass));
 }

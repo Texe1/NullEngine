@@ -3,18 +3,21 @@ export module Renderer.Vulkan;
 #include "../utils/typedef.h"
 
 import :CfgStructs;
+import :Context;
 
 import <vulkan/vulkan.h>;
 import <SDL2/SDL.h>;
 
 export namespace render {
 	export namespace vulkan {
-		export class VkContext
+		export class VulkanRenderer
 		{
 		public:
 		private:
-
 			// Vulkan stuff
+			VulkanContext* ctx;
+
+			/*
 			VkInstance inst = 0;
 			VkDevice logicalDevice = 0;
 			VkPhysicalDevice physicalDevice = 0;
@@ -30,6 +33,7 @@ export namespace render {
 				VkQueue* graphics;
 				VkQueue* compute;
 			} queues;
+			*/
 			struct {
 				VkSwapchainKHR swapchain;
 				u32 nImgs;
@@ -64,17 +68,18 @@ export namespace render {
 			// SDL window
 			SDL_Window* wnd;
 		public:
-			VkContext(VkInstCfg&, VkDvcCfg&);
-			VkContext(VkInstCfg& instCfg) : VkContext((VkInstCfg&)instCfg, (VkDvcCfg&)VkDvcCfg::defaultCfg) {}
-			VkContext() : VkContext(VkInstCfg::defaultCfg) {}
+			VulkanRenderer(VkInstCfg& instCfg, VkDvcCfg& dvcCfg);
+			VulkanRenderer(VkInstCfg& cfg) : VulkanRenderer(cfg, (VkDvcCfg&)VkDvcCfg::defaultCfg) {}
+			VulkanRenderer(VkDvcCfg& cfg) : VulkanRenderer((VkInstCfg&)VkInstCfg::defaultCfg, cfg) {}
+			VulkanRenderer() : VulkanRenderer((VkInstCfg&)VkInstCfg::defaultCfg, (VkDvcCfg&)VkDvcCfg::defaultCfg) {}
 
 			int render();
 
-			~VkContext();
+			~VulkanRenderer();
 
 		private:
-			void initInstance(const VkInstCfg&);
-			void initdevice(VkDvcCfg*);
+			//void initInstance(const VkInstCfg&);
+			//void initdevice(VkDvcCfg*);
 			void addSwapchain();
 			void addRenderPass();
 			void addCommandPool();

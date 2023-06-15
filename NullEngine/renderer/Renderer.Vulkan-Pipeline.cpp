@@ -55,9 +55,9 @@ VkShaderModule createShaderModule(const char* filename, VkDevice dvc) {
 	return shader;
 }
 
-void VkContext::addPipeline() {
-	VkShaderModule vertShader = createShaderModule("D:/Programming/C/NullEngine/NullEngine/shaders/vert.spv", this->logicalDevice);
-	VkShaderModule fragShader = createShaderModule("D:/Programming/C/NullEngine/NullEngine/shaders/frag.spv", this->logicalDevice);
+void VulkanRenderer::addPipeline() {
+	VkShaderModule vertShader = createShaderModule("D:/Programming/C/NullEngine/NullEngine/shaders/vert.spv", ctx->dvc.logic);
+	VkShaderModule fragShader = createShaderModule("D:/Programming/C/NullEngine/NullEngine/shaders/frag.spv", ctx->dvc.logic);
 
 	VkPipelineShaderStageCreateInfo shaderStages[2]{};
 	{
@@ -73,7 +73,7 @@ void VkContext::addPipeline() {
 
 	{
 		VkPipelineLayoutCreateInfo info = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
-		vkCreatePipelineLayout(this->logicalDevice, &info, 0, &(this->pipeline.layout));
+		vkCreatePipelineLayout(ctx->dvc.logic, &info, 0, &(this->pipeline.layout));
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertInputState{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
@@ -126,12 +126,12 @@ void VkContext::addPipeline() {
 		info.layout = this->pipeline.layout;
 		info.renderPass = this->renderPass.renderPass;
 		info.subpass = 0;
-		vkCreateGraphicsPipelines(this->logicalDevice, 0, 1, &info, 0, &(this->pipeline.handle));
+		vkCreateGraphicsPipelines(ctx->dvc.logic, 0, 1, &info, 0, &(this->pipeline.handle));
 	}
 
 	// Shader Modules are no longer needed
 	{
-		vkDestroyShaderModule(this->logicalDevice, vertShader, 0);
-		vkDestroyShaderModule(this->logicalDevice, fragShader, 0);
+		vkDestroyShaderModule(ctx->dvc.logic, vertShader, 0);
+		vkDestroyShaderModule(ctx->dvc.logic, fragShader, 0);
 	}
 }
