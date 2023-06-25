@@ -3,6 +3,9 @@ module;
 #include "../utils/typedef.h"
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
+#include <vulkan/vulkan.h>
+#include <Windows.h>
+#include <vulkan/vulkan_win32.h>
 
 export module Renderer.Vulkan:CfgStructs;
 
@@ -47,7 +50,7 @@ namespace render {
 
 			Flags flags;
 
-			i64 ratePhysicalDevice(VkPhysicalDevice, VkSurfaceKHR);
+			i64 ratePhysicalDevice(VkPhysicalDevice);
 
 			static const VkDvcCfg defaultCfg;
 		};
@@ -91,7 +94,7 @@ const VkDvcCfg VkDvcCfg::defaultCfg {
 	VkDvcCfg::Flags::createQueuesGraphics,
 };
 
-i64 VkDvcCfg::ratePhysicalDevice(VkPhysicalDevice dvc, VkSurfaceKHR surface) {
+i64 VkDvcCfg::ratePhysicalDevice(VkPhysicalDevice dvc) {
 
 	i64 score = 0;
 
@@ -223,8 +226,7 @@ i64 VkDvcCfg::ratePhysicalDevice(VkPhysicalDevice dvc, VkSurfaceKHR surface) {
 		u32 i = 0;
 		for (u32 i = 0; i < nQueueFams; i++) {
 
-			u32 presentSupport = 0;
-			vkGetPhysicalDeviceSurfaceSupportKHR(dvc, i, surface, &presentSupport);
+			u32 presentSupport = vkGetPhysicalDeviceWin32PresentationSupportKHR(dvc, i);
 
 			if (presentSupport) {
 				foundPresentFamily = 1;

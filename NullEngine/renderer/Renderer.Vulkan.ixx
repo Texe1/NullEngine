@@ -1,7 +1,13 @@
-export module Renderer.Vulkan;
+module;
 
 #include "../utils/typedef.h"
 
+export module Renderer.Vulkan;
+
+export import :Context;
+export import :Window;
+
+/*
 import :CfgStructs;
 import :Context;
 
@@ -33,7 +39,7 @@ export namespace render {
 				VkQueue* graphics;
 				VkQueue* compute;
 			} queues;
-			*/
+			* /
 			struct {
 				VkSwapchainKHR swapchain;
 				u32 nImgs;
@@ -95,3 +101,5 @@ import <stdexcept>;
 import <stdio.h>;
 import <SDL2/SDL.h>;
 import <SDL2/SDL_vulkan.h>;
+
+*/

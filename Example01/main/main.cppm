@@ -1,11 +1,12 @@
 #include "stdio.h"
+
 import Renderer;
 
 int main() {
 	printf("startup...\n");
-	render::vulkan::VulkanRenderer ctx = render::vulkan::VulkanRenderer();
-
-	while (ctx.render());
+	
+	render::vulkan::VulkanContext ctx = render::vulkan::VulkanContext();
+	render::vulkan::VulkanWindow wnd = render::vulkan::VulkanWindow(&ctx, "NullEngine", 800, 600);
 
 	printf("finished, cleaning up...\n");
 }

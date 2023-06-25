@@ -29,25 +29,16 @@
     <ClCompile Include="renderer\Renderer.Vulkan-CfgStructs.ixx">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="renderer\Renderer.Vulkan-CmdPool.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="renderer\Renderer.Vulkan-Init.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="renderer\Renderer.Vulkan-render.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="renderer\Renderer.Vulkan-Renderpass.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="renderer\Renderer.Vulkan-Swapchain.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="renderer\Renderer.Vulkan-pipeline.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="renderer\Renderer.Vulkan-Context.ixx">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer\Renderer.Vulkan-CtxStructs.ixx">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer\Renderer.Vulkan-Window.ixx">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

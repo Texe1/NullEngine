@@ -24,13 +24,10 @@
   <ItemGroup>
     <ClCompile Include="renderer\Renderer.ixx" />
     <ClCompile Include="renderer\Renderer.Vulkan-CfgStructs.ixx" />
-    <ClCompile Include="renderer\Renderer.Vulkan-CmdPool.cpp" />
     <ClCompile Include="renderer\Renderer.Vulkan-Context.ixx" />
-    <ClCompile Include="renderer\Renderer.Vulkan-Init.cpp" />
-    <ClCompile Include="renderer\Renderer.Vulkan-pipeline.cpp" />
+    <ClCompile Include="renderer\Renderer.Vulkan-CtxStructs.ixx" />
     <ClCompile Include="renderer\Renderer.Vulkan-render.cpp" />
-    <ClCompile Include="renderer\Renderer.Vulkan-Renderpass.cpp" />
-    <ClCompile Include="renderer\Renderer.Vulkan-Swapchain.cpp" />
+    <ClCompile Include="renderer\Renderer.Vulkan-Window.ixx" />
     <ClCompile Include="renderer\Renderer.Vulkan.ixx" />
   </ItemGroup>
   <ItemGroup>

@@ -1,3 +1,4 @@
+/*
 module Renderer.Vulkan;
 
 #include "../utils/typedef.h"
@@ -78,4 +79,4 @@ int VulkanRenderer::render() {
 		vkQueuePresentKHR(ctx->dvc.queues.graphics.queue[0], &presentInfo);
 	}
 	return 1;
-}
+}*/

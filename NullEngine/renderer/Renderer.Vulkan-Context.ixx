@@ -1,18 +1,22 @@
 module;
 
 #include "../utils/typedef.h"
-#include "vulkan/vulkan.h"
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
+#include <Windows.h>
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_win32.h>
 
 export module Renderer.Vulkan:Context;
 
 import :CfgStructs;
+import :CtxStructs;
 
-namespace render {
-	namespace vulkan {
-		class VulkanContext {
+
+export namespace render {
+	export namespace vulkan {
+		export class VulkanContext {
 		public:
 			VkInstance inst;
 			struct {
@@ -36,20 +40,29 @@ namespace render {
 					} compute;
 				} queues;
 			} dvc;
-			SDL_Window* wnd;
-			VkSurfaceKHR surface;
 
 		private:
 			void initInst(VkInstCfg&);
 			void initDvc(VkDvcCfg&);
 
 		public:
-			VulkanContext(VkInstCfg& instCfg, VkDvcCfg& dvcCfg, SDL_Window* wnd) { this->wnd = wnd; initInst(instCfg); initDvc(dvcCfg); }
-			VulkanContext(VkInstCfg& cfg, SDL_Window* wnd) : VulkanContext(cfg, (VkDvcCfg&)VkDvcCfg::defaultCfg, wnd) {}
-			VulkanContext(VkDvcCfg& cfg, SDL_Window* wnd) : VulkanContext((VkInstCfg&)VkInstCfg::defaultCfg, cfg, wnd) {}
-			VulkanContext(SDL_Window* wnd) : VulkanContext((VkInstCfg&)VkInstCfg::defaultCfg, (VkDvcCfg&)VkDvcCfg::defaultCfg, wnd) {}
-			VulkanContext() {}
+			VulkanContext(VkInstCfg& instCfg, VkDvcCfg& dvcCfg) { initInst(instCfg); initDvc(dvcCfg); }
+			VulkanContext(VkInstCfg& cfg) : VulkanContext(cfg, (VkDvcCfg&)VkDvcCfg::defaultCfg) {}
+			VulkanContext(VkDvcCfg& cfg) : VulkanContext((VkInstCfg&)VkInstCfg::defaultCfg, cfg) {}
+			VulkanContext() : VulkanContext((VkInstCfg&)VkInstCfg::defaultCfg, (VkDvcCfg&)VkDvcCfg::defaultCfg) {}
 			~VulkanContext();
+
+			void createSwapchain(VkSurfaceKHR surface, u32 minImgs, VkPresentModeKHR preferredPresentMode, swapchain_data* ret);
+			swapchain_data createSwapchain(VkSurfaceKHR surface, u32 minImgs, VkPresentModeKHR preferredPresentMode);
+			
+			void createRenderPass(VkRenderPassCreateInfo*, renderpass_data*);
+			void createGraphicsPipeline(VkPipelineLayoutCreateInfo*, VkGraphicsPipelineCreateInfo*, pipeline_data*);
+			void createCommandPool(u32 nBuffers, command_pool_data* ret);
+			void createFences(u32 n, VkFence* ret);
+			void createSemaphores(u32 n, VkSemaphore* ret);
+			VkShaderModule createShaderModule(const char*);
+
+			// TODO all kinds of funtions like createQueue(cfg)
 		};
 	}
 }
@@ -134,15 +147,14 @@ void VulkanContext::initInst(VkInstCfg& cfg) {
 	}
 
 	// creating the instance
-	VkInstanceCreateInfo info{
-		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+	VkInstanceCreateInfo info{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
 
-		.enabledLayerCount = nLayers,
-		.ppEnabledLayerNames = (nLayers) ? cfg.layers.names : 0,
+	info.enabledLayerCount = nLayers;
+	info.ppEnabledLayerNames = (nLayers) ? cfg.layers.names : 0;
 
-		.enabledExtensionCount = nExt,
-		.ppEnabledExtensionNames = (nExt) ? cfg.extensions.names : 0,
-	};
+	info.enabledExtensionCount = nExt;
+	info.ppEnabledExtensionNames = (nExt) ? cfg.extensions.names : 0;
+
 	VkResult res = vkCreateInstance(&info, 0, &this->inst);
 }
 
@@ -150,7 +162,7 @@ void VulkanContext::initDvc(VkDvcCfg& cfg) {
 	INF(printf("Initializing logical device...\n > choosing physical device...\n"));
 	
 	// creating surface
-	SDL_Vulkan_CreateSurface(this->wnd, this->inst, &(this->surface));
+	//SDL_Vulkan_CreateSurface(this->wnd, this->inst, &(this->surface));
 
 	// get physical devices
 	u32 nPhysDevices = 0;
@@ -169,7 +181,7 @@ void VulkanContext::initDvc(VkDvcCfg& cfg) {
 	i64 maxScore = -1;
 	VkPhysicalDevice bestDevice = 0;
 	for (u32 i = 0; i < nPhysDevices; i++) {
-		i64 score = cfg.ratePhysicalDevice(physDevices[i], this->surface);
+		i64 score = cfg.ratePhysicalDevice(physDevices[i]);
 
 		if (score > maxScore) {
 			maxScore = score;
@@ -288,8 +300,7 @@ void VulkanContext::initDvc(VkDvcCfg& cfg) {
 		for (u32 i = 0; i < nQueueFams; i++) {
 			u8 graphics = (queueFams[i].queueFlags & VK_QUEUE_GRAPHICS_BIT);
 			u8 compute = (queueFams[i].queueFlags & VK_QUEUE_COMPUTE_BIT);
-			u32 present = 0;
-			vkGetPhysicalDeviceSurfaceSupportKHR(bestDevice, i, this->surface, &present);
+			u32 present = vkGetPhysicalDeviceWin32PresentationSupportKHR(bestDevice, i);
 
 			if (present && graphics && compute) {
 				presentFam = i;
@@ -365,18 +376,15 @@ void VulkanContext::initDvc(VkDvcCfg& cfg) {
 	// creating logical device and saving physical device and surface
 	{
 
-		VkDeviceCreateInfo info{
-			.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+		VkDeviceCreateInfo info{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
+		info.queueCreateInfoCount = nQueueInfos;
+		info.pQueueCreateInfos = queueInfos;
 
-			.queueCreateInfoCount = nQueueInfos,
-			.pQueueCreateInfos = queueInfos,
+		info.enabledLayerCount = nEnableLayers;
+		info.ppEnabledLayerNames = enableLayers;
 
-			.enabledLayerCount = nEnableLayers,
-			.ppEnabledLayerNames = enableLayers,
-
-			.enabledExtensionCount = nEnableExts,
-			.ppEnabledExtensionNames = enableExts,
-		};
+		info.enabledExtensionCount = nEnableExts;
+		info.ppEnabledExtensionNames = enableExts;
 
 		vkCreateDevice(bestDevice, &info, NULL, &(this->dvc.logic));
 	}
@@ -446,8 +454,183 @@ VulkanContext::~VulkanContext() {
 
 	INF(printf("destroying vulkan device...\n"));
 	vkDestroyDevice(dvc.logic, 0);
-	INF(printf("destroying vulkan surface...\n"));
-	vkDestroySurfaceKHR(inst, surface, 0);
 	INF(printf("destroying vulkan instance...\n"));
 	vkDestroyInstance(inst, 0);
+}
+
+void VulkanContext::createSwapchain(VkSurfaceKHR surface, u32 minImgCount, VkPresentModeKHR preferredPresentMode, swapchain_data* ret) {
+	VkSurfaceFormatKHR format = {};
+	{
+		u32 nFormats = 0;
+		VkSurfaceFormatKHR* surfaceFormats = 0;
+		INF(
+			{
+				VkPhysicalDeviceProperties phDvcProps;
+				vkGetPhysicalDeviceProperties(dvc.phys, &phDvcProps);
+				printf(" > checking surface formats for '%s'\n", phDvcProps.deviceName);
+			}
+		);
+		u32 n = 1;
+		vkGetPhysicalDeviceSurfaceFormatsKHR(dvc.phys, surface, &n, &format);
+		if (n == 0) {
+			throw new std::runtime_error("No surface Formats available for chosen physical Device.");
+			*ret = {};
+			return;
+		}
+	}
+
+	VkExtent2D surfaceExtent = {};
+	{
+		VkSurfaceCapabilitiesKHR surfaceCaps;
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(dvc.phys, surface, &surfaceCaps);
+
+		if (surfaceCaps.maxImageCount) minImgCount = MIN(surfaceCaps.maxImageCount, minImgCount);
+		minImgCount = MAX(minImgCount, surfaceCaps.minImageCount);
+		surfaceExtent = surfaceCaps.currentExtent;
+
+		if (surfaceExtent.width == 0xffffffff) {
+			surfaceExtent.width = surfaceCaps.minImageExtent.width;
+		}
+		if (surfaceExtent.height == 0xffffffff) {
+			surfaceExtent.height = surfaceCaps.minImageExtent.height;
+		}
+	}
+
+	// creating Swapchain
+	swapchain_data res{};
+	VkSwapchainCreateInfoKHR info{};
+
+	{
+		info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+		info.surface = surface;
+		info.minImageCount = minImgCount;
+		info.imageFormat = format.format;
+		info.imageColorSpace = format.colorSpace;
+		info.imageExtent = surfaceExtent;
+		info.imageArrayLayers = 1;
+		info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		info.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+		info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+		info.presentMode = preferredPresentMode; // TODO check if present mode is available, else use VK_PRESENT_MODE_FIFO_KHR
+		vkCreateSwapchainKHR(dvc.logic, &info, 0, &(res.handle));
+	}
+
+	res.colorSpace = format.colorSpace;
+	res.format = format.format;
+	res.width = surfaceExtent.width;
+	res.height = surfaceExtent.height;
+
+	vkGetSwapchainImagesKHR(this->dvc.logic, res.handle, &(res.nImgs), 0);
+	res.imgs = new VkImage[res.nImgs];
+	vkGetSwapchainImagesKHR(this->dvc.logic, res.handle, &(res.nImgs), res.imgs);
+
+	VkImageViewCreateInfo imgViewInfo{};
+	imgViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	imgViewInfo.format = res.format;
+	imgViewInfo.components = {};
+	imgViewInfo.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0,1,0,1 };
+	res.createImageViews(dvc.logic, &imgViewInfo);
+
+	*ret = res;
+}
+
+// do not use
+swapchain_data VulkanContext::createSwapchain(VkSurfaceKHR surface, u32 minImgCount, VkPresentModeKHR preferredPresentMode) {
+	swapchain_data res;
+	createSwapchain(surface, minImgCount, preferredPresentMode, &res);
+	return res;
+}
+
+void VulkanContext::createRenderPass(VkRenderPassCreateInfo* info, renderpass_data* ret) {
+	info->sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	vkCreateRenderPass(dvc.logic, info, NULL, &(ret->handle));
+}
+
+void VulkanContext::createGraphicsPipeline(VkPipelineLayoutCreateInfo* layoutInfo, VkGraphicsPipelineCreateInfo* info, pipeline_data* ret) {
+	layoutInfo->sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;  
+	vkCreatePipelineLayout(dvc.logic, layoutInfo, NULL, &(ret->layout));
+	
+	info->sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	info->layout = ret->layout;
+	vkCreateGraphicsPipelines(dvc.logic, NULL, 1, info, NULL, &ret->handle);
+}
+
+void VulkanContext::createCommandPool(u32 nBuffers, command_pool_data* ret) {
+	VkCommandPoolCreateInfo info{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
+	info.queueFamilyIndex = dvc.queues.graphics.family;
+	vkCreateCommandPool(dvc.logic, &info, NULL, &(ret->handle));
+
+	VkCommandBufferAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+	allocInfo.commandBufferCount = nBuffers;
+	allocInfo.commandPool = ret->handle;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+
+	ret->nBuffers = nBuffers;
+	ret->buffers = new VkCommandBuffer[nBuffers];
+	vkAllocateCommandBuffers(dvc.logic, &allocInfo, ret->buffers);
+}
+
+void VulkanContext::createFences(u32 n, VkFence* ret) {
+	VkFenceCreateInfo info{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+	for (u32 i = 0; i < n; i++) {
+		vkCreateFence(dvc.logic, &info, NULL, &(ret[i]));
+	}
+}
+
+void VulkanContext::createSemaphores(u32 n, VkSemaphore* ret) {
+	VkSemaphoreCreateInfo info{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+	for (u32 i = 0; i < n; i++) {
+		vkCreateSemaphore(dvc.logic, &info, NULL, &(ret[i]));
+	}
+}
+
+VkShaderModule VulkanContext::createShaderModule(const char* filename) {
+	char* code;
+	u32 len;
+	{
+		FILE* f;
+		fopen_s(&f, filename, "rb");
+		if (f == NULL) {
+			perror("File Error");
+			exit(-1);
+		}
+		fseek(f, 0, SEEK_END);
+		u32 sz = ftell(f);
+
+		char* s = (char*)malloc((u64)sz + 1);
+		if (!s) {
+			code = 0;
+			len = 0;
+			return 0;
+		}
+
+		rewind(f);
+
+		for (u32 i = 0; i < sz; i++) {
+			u32 x = ftell(f);
+			s[i] = fgetc(f);
+		}
+		(s)[sz] = 0;
+
+		code = s;
+		len = sz;
+		fclose(f);
+	}
+
+	if (!code || (len == 0))
+		return NULL;
+
+	VkShaderModule shader = 0;
+	{
+		VkShaderModuleCreateInfo info{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
+		info.codeSize = len;
+		info.pCode = (u32*)code;
+
+		vkCreateShaderModule(dvc.logic, &info, 0, &shader);
+
+		free(code);
+	}
+
+	return shader;
 }

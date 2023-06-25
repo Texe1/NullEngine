@@ -133,12 +133,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="main\main.cppm" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\NullEngine\NullEngine.vcxproj">
       <Project>{63e10d4e-7e4a-4754-919c-8f2ebc613322}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="main\main.cppm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
