@@ -29,9 +29,6 @@
     <ClCompile Include="renderer\Renderer.Vulkan-CfgStructs.ixx">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="renderer\Renderer.Vulkan-render.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="renderer\Renderer.Vulkan-Context.ixx">
       <Filter>Quelldateien</Filter>
     </ClCompile>
