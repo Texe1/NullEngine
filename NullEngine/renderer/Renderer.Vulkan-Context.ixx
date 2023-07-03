@@ -52,7 +52,10 @@ export namespace render {
 			VulkanContext() : VulkanContext((VkInstCfg&)VkInstCfg::defaultCfg, (VkDvcCfg&)VkDvcCfg::defaultCfg) {}
 			~VulkanContext();
 
-			void createSwapchain(VkSurfaceKHR surface, u32 minImgs, VkPresentModeKHR preferredPresentMode, swapchain_data* ret);
+			inline void WaitIdle();
+
+			void createSwapchain(VkSurfaceKHR surface, u32 minImgs, VkPresentModeKHR preferredPresentMode, swapchain_data* ret, VkSwapchainKHR oldSwapchain);
+			void createSwapchain(VkSurfaceKHR surface, u32 minImgs, VkPresentModeKHR preferredPresentMode, swapchain_data* ret) { createSwapchain(surface, minImgs, preferredPresentMode, ret, NULL); }
 			swapchain_data createSwapchain(VkSurfaceKHR surface, u32 minImgs, VkPresentModeKHR preferredPresentMode);
 			
 			void createRenderPass(VkRenderPassCreateInfo*, renderpass_data*);
@@ -61,6 +64,7 @@ export namespace render {
 			void createFences(u32 n, VkFence* ret);
 			void createSemaphores(u32 n, VkSemaphore* ret);
 			VkShaderModule createShaderModule(const char*);
+			void createBuffer(u64, VkBufferUsageFlags, VkMemoryPropertyFlags, buffer_data*);
 
 			// TODO all kinds of funtions like createQueue(cfg)
 		};
@@ -74,7 +78,6 @@ export namespace render {
  */
 
 using namespace render::vulkan;
-
 
 import <stdexcept>;
 
@@ -458,7 +461,11 @@ VulkanContext::~VulkanContext() {
 	vkDestroyInstance(inst, 0);
 }
 
-void VulkanContext::createSwapchain(VkSurfaceKHR surface, u32 minImgCount, VkPresentModeKHR preferredPresentMode, swapchain_data* ret) {
+inline void VulkanContext::WaitIdle() {
+	vkDeviceWaitIdle(dvc.logic);
+}
+
+void VulkanContext::createSwapchain(VkSurfaceKHR surface, u32 minImgCount, VkPresentModeKHR preferredPresentMode, swapchain_data* ret, VkSwapchainKHR oldSwapchain) {
 	VkSurfaceFormatKHR format = {};
 	{
 		u32 nFormats = 0;
@@ -513,6 +520,7 @@ void VulkanContext::createSwapchain(VkSurfaceKHR surface, u32 minImgCount, VkPre
 		info.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 		info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		info.presentMode = preferredPresentMode; // TODO check if present mode is available, else use VK_PRESENT_MODE_FIFO_KHR
+		info.oldSwapchain = oldSwapchain;
 		vkCreateSwapchainKHR(dvc.logic, &info, 0, &(res.handle));
 	}
 
@@ -573,6 +581,7 @@ void VulkanContext::createCommandPool(u32 nBuffers, command_pool_data* ret) {
 
 void VulkanContext::createFences(u32 n, VkFence* ret) {
 	VkFenceCreateInfo info{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+	info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 	for (u32 i = 0; i < n; i++) {
 		vkCreateFence(dvc.logic, &info, NULL, &(ret[i]));
 	}
@@ -633,4 +642,24 @@ VkShaderModule VulkanContext::createShaderModule(const char* filename) {
 	}
 
 	return shader;
+}
+
+// TODO separate buffer and Memory
+void VulkanContext::createBuffer(u64 sz, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, buffer_data* ret) {
+	
+	VkBufferCreateInfo info{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
+	info.size = sz;
+	info.usage = usage;
+	vkCreateBuffer(dvc.logic, &info, NULL, &(ret->handle));
+
+	
+	VkMemoryAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+	VkMemoryRequirements req;
+	vkGetBufferMemoryRequirements(dvc.logic, ret->handle, &req);
+	allocInfo.allocationSize = req.size;
+
+	allocInfo.memoryTypeIndex = 0; // <- TODO check for [properties] param in list of mem types 
+
+	vkAllocateMemory(dvc.logic, &allocInfo, NULL, &(ret->memory));
+	vkBindBufferMemory(dvc.logic, ret->handle, ret->memory, 0);
 }

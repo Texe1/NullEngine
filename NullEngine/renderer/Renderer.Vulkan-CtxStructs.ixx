@@ -46,6 +46,11 @@ namespace render {
 			void destroy(VkDevice);
 
 		};
+
+		struct buffer_data {
+			VkBuffer handle;
+			VkDeviceMemory memory;
+		};
 	}
 }
 
