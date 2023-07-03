@@ -8,7 +8,7 @@ module;
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_win32.h>
 
-export module Renderer.Vulkan:Context;
+export module Vulkan:Context;
 
 import :CfgStructs;
 import :CtxStructs;

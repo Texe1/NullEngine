@@ -7,7 +7,7 @@ module;
 #include <Windows.h>
 #include <vulkan/vulkan_win32.h>
 
-export module Renderer.Vulkan:CfgStructs;
+export module Vulkan:CfgStructs;
 
 import <vulkan/vulkan.h>;
 

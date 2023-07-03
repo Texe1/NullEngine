@@ -20,22 +20,19 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="renderer\Renderer.ixx">
+    <ClCompile Include="renderer\Vulkan.ixx">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="renderer\Renderer.Vulkan.ixx">
+    <ClCompile Include="renderer\Vulkan-CfgStructs.ixx">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="renderer\Renderer.Vulkan-CfgStructs.ixx">
+    <ClCompile Include="renderer\Vulkan-Context.ixx">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="renderer\Renderer.Vulkan-Context.ixx">
+    <ClCompile Include="renderer\Vulkan-CtxStructs.ixx">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="renderer\Renderer.Vulkan-CtxStructs.ixx">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="renderer\Renderer.Vulkan-Window.ixx">
+    <ClCompile Include="renderer\Vulkan-Window.ixx">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

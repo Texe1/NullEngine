@@ -5,7 +5,7 @@ module;
 #include <SDL2/SDL.h>
 #include <vulkan/vulkan.h>
 
-export module Renderer.Vulkan:Window;
+export module Vulkan:Window;
 
 import :Context;
 import :CtxStructs;
@@ -133,16 +133,16 @@ VulkanWindow::VulkanWindow(VulkanContext* ctx, const char* title, u32 width, u32
 			inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		}
 		VkPipelineViewportStateCreateInfo viewPortState{ VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
-		VkViewport viewPort;
-		VkRect2D scissor;
+		//VkViewport viewPort;
+		//VkRect2D scissor;
 		{
-			viewPort = { 0,0, (float)(this->swapchain.width), (float)(this->swapchain.height) };
-			scissor = { 0,0, this->swapchain.width, this->swapchain.height };
+			//viewPort = { 0,0, (float)(this->swapchain.width), (float)(this->swapchain.height) };
+			//scissor = { 0,0, this->swapchain.width, this->swapchain.height };
 
 			viewPortState.viewportCount = 1;
-			viewPortState.pViewports = &viewPort;
+			//viewPortState.pViewports = &viewPort;
 			viewPortState.scissorCount = 1;
-			viewPortState.pScissors = &scissor;
+			//viewPortState.pScissors = &scissor;
 		}
 		VkPipelineRasterizationStateCreateInfo rasterizationState{ VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
 		{
@@ -163,6 +163,13 @@ VulkanWindow::VulkanWindow(VulkanContext* ctx, const char* title, u32 width, u32
 			colorBlendState.pAttachments = &colorBlendAttachment;
 		}
 
+		VkPipelineDynamicStateCreateInfo dynamicState{ VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
+		VkDynamicState dynStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+		{
+			dynamicState.dynamicStateCount = 2;
+			dynamicState.pDynamicStates = dynStates;
+		}
+
 		{
 			info.stageCount = 2;
 			info.pStages = shaderStages;
@@ -172,6 +179,7 @@ VulkanWindow::VulkanWindow(VulkanContext* ctx, const char* title, u32 width, u32
 			info.pRasterizationState = &rasterizationState;
 			info.pMultisampleState = &multiSampleState;
 			info.pColorBlendState = &colorBlendState;
+			info.pDynamicState = &dynamicState;
 			info.layout = this->pipeline.layout;
 			info.renderPass = renderpass.handle;
 			info.subpass = 0;
@@ -247,7 +255,11 @@ int VulkanWindow::render() {
 			 vkCmdBeginRenderPass(cmdBuf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 			 {
 				 vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipeline.handle);
-
+				 VkViewport viewport = { 0.0f, 0.0f, (float)swapchain.width, (float)swapchain.height };
+				 VkRect2D scissor = { {0,0 }, { swapchain.width, swapchain.height } };
+				 
+				 vkCmdSetViewport(cmdBuf, 0, 1, &viewport);
+				 vkCmdSetScissor(cmdBuf, 0, 1, &scissor);
 				 vkCmdDraw(cmdBuf, 3, 1, 0, 0);
 			 }
 			 vkCmdEndRenderPass(cmdBuf);
@@ -371,7 +383,7 @@ void VulkanWindow::resize() {
 	}
 
 	// TMP: recreate Pipeline
-	{
+	/* {
 		INF(printf(" > recreating pipeline...\n"));
 		pipeline.destroy(ctx->dvc.logic);
 		VkShaderModule vert = ctx->createShaderModule("D:/Programming/C/NullEngine/NullEngine/shaders/vert.spv");
@@ -449,5 +461,5 @@ void VulkanWindow::resize() {
 
 		vkDestroyShaderModule(ctx->dvc.logic, vert, NULL);
 		vkDestroyShaderModule(ctx->dvc.logic, frag, NULL);
-	}
+	}*/
 }

@@ -2,7 +2,7 @@ module;
 
 #include "../utils/typedef.h"
 
-export module Renderer.Vulkan:CtxStructs;
+export module Vulkan:CtxStructs;
 
 import <vulkan/vulkan.h>;
 import <stdlib.h>;

@@ -22,12 +22,11 @@
     <ClInclude Include="utils\typedef.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="renderer\Renderer.ixx" />
-    <ClCompile Include="renderer\Renderer.Vulkan-CfgStructs.ixx" />
-    <ClCompile Include="renderer\Renderer.Vulkan-Context.ixx" />
-    <ClCompile Include="renderer\Renderer.Vulkan-CtxStructs.ixx" />
-    <ClCompile Include="renderer\Renderer.Vulkan-Window.ixx" />
-    <ClCompile Include="renderer\Renderer.Vulkan.ixx" />
+    <ClCompile Include="renderer\Vulkan-CfgStructs.ixx" />
+    <ClCompile Include="renderer\Vulkan-Context.ixx" />
+    <ClCompile Include="renderer\Vulkan-CtxStructs.ixx" />
+    <ClCompile Include="renderer\Vulkan-Window.ixx" />
+    <ClCompile Include="renderer\Vulkan.ixx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\compileShaders.bat" />
