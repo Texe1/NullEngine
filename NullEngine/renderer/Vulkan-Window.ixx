@@ -8,6 +8,7 @@ module;
 export module Vulkan:Window;
 
 import :Context;
+import :Renderer;
 import :CtxStructs;
 #define SDL_MAIN_HANDLED
 import <SDL2/SDL.h>;
@@ -19,6 +20,7 @@ export namespace render {
 	export namespace vulkan {
 		export class VulkanWindow {
 			VulkanContext* ctx;
+			VulkanRenderer* renderer;
 
 			swapchain_data swapchain;
 			renderpass_data renderpass;
@@ -103,6 +105,8 @@ VulkanWindow::VulkanWindow(VulkanContext* ctx, const char* title, u32 width, u32
 		info.renderPass = renderpass.handle;
 		swapchain.createFramebuffers(ctx->dvc.logic, &info);
 	}
+
+	renderer = new VulkanRenderer(ctx, &this->renderpass);
 
 	// TMP: pipeline
 	{
@@ -254,13 +258,7 @@ int VulkanWindow::render() {
 
 			 vkCmdBeginRenderPass(cmdBuf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 			 {
-				 vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipeline.handle);
-				 VkViewport viewport = { 0.0f, 0.0f, (float)swapchain.width, (float)swapchain.height };
-				 VkRect2D scissor = { {0,0 }, { swapchain.width, swapchain.height } };
-				 
-				 vkCmdSetViewport(cmdBuf, 0, 1, &viewport);
-				 vkCmdSetScissor(cmdBuf, 0, 1, &scissor);
-				 vkCmdDraw(cmdBuf, 3, 1, 0, 0);
+				 renderer->render(cmdBuf, swapchain.width, swapchain.height);
 			 }
 			 vkCmdEndRenderPass(cmdBuf);
 		 }
@@ -309,6 +307,9 @@ VulkanWindow::~VulkanWindow() {
 	free(sync_objs.semaphores);
 
 	command_pool.destroy(ctx->dvc.logic);
+
+	delete renderer;
+
 	pipeline.destroy(ctx->dvc.logic);
 	vkDestroyRenderPass(ctx->dvc.logic, renderpass.handle, NULL);
 
