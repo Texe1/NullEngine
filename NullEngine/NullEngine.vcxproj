@@ -25,6 +25,7 @@
     <ClCompile Include="renderer\Vulkan-CfgStructs.ixx" />
     <ClCompile Include="renderer\Vulkan-Context.ixx" />
     <ClCompile Include="renderer\Vulkan-CtxStructs.ixx" />
+    <ClCompile Include="renderer\Vulkan-Mesh.ixx" />
     <ClCompile Include="renderer\Vulkan-Renderer.ixx" />
     <ClCompile Include="renderer\Vulkan-Window.ixx" />
     <ClCompile Include="renderer\Vulkan.ixx" />

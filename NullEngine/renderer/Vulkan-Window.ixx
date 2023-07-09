@@ -19,8 +19,10 @@ import <stdexcept>;
 export namespace render {
 	export namespace vulkan {
 		export class VulkanWindow {
-			VulkanContext* ctx;
+		public:
 			VulkanRenderer* renderer;
+		private:
+			VulkanContext* ctx;
 
 			swapchain_data swapchain;
 			renderpass_data renderpass;
@@ -256,9 +258,15 @@ int VulkanWindow::render() {
 			 renderPassBeginInfo.clearValueCount = 1;
 			 renderPassBeginInfo.pClearValues = &clearVal;
 
+			 VkViewport viewport = { 0.0f, 0.0f, (float)swapchain.width, (float)swapchain.height };
+			 VkRect2D scissor = { {0,0 }, { swapchain.width, swapchain.height } };
+
+			 vkCmdSetViewport(cmdBuf, 0, 1, &viewport);
+			 vkCmdSetScissor(cmdBuf, 0, 1, &scissor);
+
 			 vkCmdBeginRenderPass(cmdBuf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 			 {
-				 renderer->render(cmdBuf, swapchain.width, swapchain.height);
+				 renderer->render(cmdBuf);
 			 }
 			 vkCmdEndRenderPass(cmdBuf);
 		 }

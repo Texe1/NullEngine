@@ -6,3 +6,4 @@ export module Vulkan;
 
 export import :Context;
 export import :Window;
+export import :Mesh;

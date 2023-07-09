@@ -38,6 +38,9 @@
     <ClCompile Include="renderer\Vulkan-Renderer.ixx">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="renderer\Vulkan-Mesh.ixx">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\vert.glsl" />
