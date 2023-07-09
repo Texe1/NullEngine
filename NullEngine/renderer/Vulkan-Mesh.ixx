@@ -16,14 +16,19 @@ export namespace render {
 			u32 nVertices;
 			u32 nIndices;
 			u8 active;
+
+			struct vertex {
+				float x, y, z;
+			};
+
 		private:
 			u32 vertexOffset;
 			u32 indexOffset;
 
-			float* vertices;
+			vertex* vertices;
 			u32* indices;
 		public:
-			VulkanMesh(float*, u32, u32*, u32);
+			VulkanMesh(vertex*, u32, u32*, u32);
 			void writeVertices(VulkanContext*, u32, VkDeviceMemory);
 			void writeIndices(VulkanContext*, u32, VkDeviceMemory);
 		};
@@ -38,7 +43,7 @@ export namespace render {
 
 using namespace render::vulkan;
 
-VulkanMesh::VulkanMesh(float* _vertices, u32 _nVertices, u32* _indices, u32 _nIndices) {
+VulkanMesh::VulkanMesh(vertex* _vertices, u32 _nVertices, u32* _indices, u32 _nIndices) {
 	this->active = 1;
 	this->nVertices = _nVertices;
 	this->nIndices = _nIndices;

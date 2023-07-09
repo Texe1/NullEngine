@@ -1,11 +1,14 @@
 #include "stdio.h"
 import Vulkan;
 
-float verts[] = {
-	-0.55f, -0.55f, 0.0f,
-	 0.55f,  0.55f, 0.0f,
-	-0.55f,  0.55f, 0.0f,
-	 0.55f, -0.55f, 0.0f
+using Mesh = render::vulkan::VulkanMesh;
+using vert = Mesh::vertex;
+
+vert verts[] = {
+	{-0.55f, -0.55f, 0.0f},
+	{ 0.55f,  0.55f, 0.0f},
+	{-0.55f,  0.55f, 0.0f},
+	{ 0.55f, -0.55f, 0.0f},
 };
 
 unsigned int indices[] = {
@@ -13,10 +16,10 @@ unsigned int indices[] = {
 	0,3,1,
 };
 
-float verts2[] = {
-	-0.4f, -0.55f, 0.0f,
-	 0.55f,  0.4f, 0.0f,
-	 0.55f, -0.55f, 0.0f
+vert verts2[] = {
+	{-0.4f, -0.55f,0.0f},
+	{ 0.55f, 0.4f, 0.0f},
+	{ 0.55f,-0.55f,0.0f},
 };
 
 unsigned int indices2[] = {
