@@ -50,6 +50,10 @@ namespace render {
 		struct buffer_data {
 			VkBuffer handle;
 			VkDeviceMemory memory;
+			VkBufferUsageFlags usage;
+			VkMemoryPropertyFlags props;
+
+			void destroy(VkDevice);
 		};
 	}
 }
@@ -107,4 +111,10 @@ void command_pool_data::destroy(VkDevice dvc) {
 void pipeline_data::destroy(VkDevice dvc) {
 	vkDestroyPipeline(dvc, handle, NULL);
 	vkDestroyPipelineLayout(dvc, layout, NULL);
+}
+
+
+void buffer_data::destroy(VkDevice dvc) {
+	vkDestroyBuffer(dvc, this->handle, 0);
+	vkFreeMemory(dvc, this->memory, 0);
 }

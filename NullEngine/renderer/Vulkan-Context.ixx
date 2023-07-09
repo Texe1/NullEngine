@@ -1,4 +1,4 @@
-module;
+﻿module;
 
 #include "../utils/typedef.h"
 #define SDL_MAIN_HANDLED
@@ -64,7 +64,9 @@ export namespace render {
 			void createFences(u32 n, VkFence* ret);
 			void createSemaphores(u32 n, VkSemaphore* ret);
 			VkShaderModule createShaderModule(const char*);
+			u32 findMemoryType(u32 typeFilter, VkMemoryPropertyFlags memProps);
 			void createBuffer(u64, VkBufferUsageFlags, VkMemoryPropertyFlags, buffer_data*);
+			void resizeBuffer(buffer_data&, u32);
 
 			// TODO all kinds of funtions like createQueue(cfg)
 		};
@@ -644,7 +646,22 @@ VkShaderModule VulkanContext::createShaderModule(const char* filename) {
 	return shader;
 }
 
-// TODO separate buffer and Memory
+u32 VulkanContext::findMemoryType(u32 typeFilter, VkMemoryPropertyFlags memProps) {
+	VkPhysicalDeviceMemoryProperties deviceMemProps;
+	vkGetPhysicalDeviceMemoryProperties(dvc.phys, &deviceMemProps);
+
+	for (u32 i = 0; i < deviceMemProps.memoryTypeCount; i++) {
+		if (typeFilter & (1 << i)) {
+			if ((deviceMemProps.memoryTypes[i].propertyFlags & memProps) == memProps) {
+				return i;
+			}
+		}
+	}
+
+	return 0xffffffff;
+}
+
+// TODO separate buffer and Memory (https://developer.nvidia.com/vulkan-memory-management calls this "!?! # Δ✝🗲")
 void VulkanContext::createBuffer(u64 sz, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, buffer_data* ret) {
 	
 	VkBufferCreateInfo info{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
@@ -657,9 +674,20 @@ void VulkanContext::createBuffer(u64 sz, VkBufferUsageFlags usage, VkMemoryPrope
 	VkMemoryRequirements req;
 	vkGetBufferMemoryRequirements(dvc.logic, ret->handle, &req);
 	allocInfo.allocationSize = req.size;
-
-	allocInfo.memoryTypeIndex = 0; // <- TODO check for [properties] param in list of mem types 
+	allocInfo.memoryTypeIndex = findMemoryType(req.memoryTypeBits, properties); // <- TODO check for [properties] param in list of mem types 
 
 	vkAllocateMemory(dvc.logic, &allocInfo, NULL, &(ret->memory));
 	vkBindBufferMemory(dvc.logic, ret->handle, ret->memory, 0);
+
+	ret->usage = usage;
+	ret->props = properties;
+}
+
+void VulkanContext::resizeBuffer(buffer_data& buf, u32 new_sz) {
+	if (buf.memory)
+		vkFreeMemory(dvc.logic, buf.memory, 0);
+	if (buf.handle)
+		vkDestroyBuffer(dvc.logic, buf.handle, 0);
+
+	createBuffer(new_sz, buf.usage, buf.props, &buf);
 }
