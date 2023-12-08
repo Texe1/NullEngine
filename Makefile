@@ -4,12 +4,13 @@ OBJ=obj
 
 
 SRC_DIRS = $(wildcard $(SRC)/*/)
+OBJ_DIRS = $(wildcard $(OBJ)/*/)
 
 SRCS=$(foreach DIR, $(SRC_DIRS), $(wildcard $(DIR)*.c))
 OBJS=$(patsubst $(SRC)/%.c,$(OBJ)/%.obj, $(SRCS))
 
 BIN=bin\NullEngine.lib
-CL_ARGS=/c /W0 /Z7 /ID:\SDKs\Vulkan\1.3.268.0\Include
+CL_ARGS=/c /D_DEBUG /D_ARM64_ /W0 /Z7 /ID:\SDKs\Vulkan\1.3.268.0\Include
 LIB_ARGS=
 EXTERNAL_LIBS="D:\SDKs\Vulkan\1.3.268.0\Lib\vulkan-1.lib" "D:\SDKs\Vulkan\1.3.268.0\Lib\SDL2-static.lib"
 
@@ -30,5 +31,5 @@ $(OBJ)/%.obj: $(SRC)/%.c
 clean: 
 	@echo deleting Binary...
 	@del $(BIN)
-	@echo deleting $(OBJS)
-	@del $(patsubst $(SRC)/%.obj, $(OBJ)\\%.obj, $(OBJS))
+	@echo deleting $(patsubst $(OBJ)%.obj, .\\$(OBJ)%.obj, $(subst /,\\, $(OBJS)))
+	@del $(patsubst $(OBJ)%.obj, .\\$(OBJ)%.obj, $(subst /,\\, $(OBJS)))
