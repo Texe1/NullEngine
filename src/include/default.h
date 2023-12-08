@@ -1,6 +1,10 @@
 #pragma once
 
 #include <stdint.h>
+#include <vulkan/vulkan.h>
+
+#define ENGINE_NAME "NullEngine"
+#define ENGINE_VERSION VK_MAKE_VERSION(0, 0, 0)
 
 typedef unsigned char u8;
 typedef unsigned short u16; 
@@ -21,20 +25,23 @@ typedef long long i64;
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 
 #ifdef _DEBUG
+#include <debugapi.h>
+#define BRK DebugBreak()
 #ifndef DBG_LVL
 #define DBG_LVL 3
 #endif // !DBG_LVL
 #else  // _DEBUG
+#define BRK 
 #define DBG_LVL 0
 #endif // _DEBUG
 
 #if DBG_LVL > 0
 	#define ERR(x) x
-	#define LOGERR printf
+	#define LOGERR(format, ...) printf(format, __VA_ARGS__);BRK
 
 	#if DBG_LVL > 1
 		#define WRN(x) x
-		#define LOGWRN printf
+		#define LOGWRN(format, ...) printf(format, __VA_ARGS__);BRK
 
 		#if DBG_LVL > 2
 			#define INF(x) x
