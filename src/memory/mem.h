@@ -34,6 +34,7 @@ struct memory_chunk {
 		align 	: 16;
 };
 
+// the struct that defines the main memory chunk allocated during initialization
 struct _base_memory {
 	u64 sz;
 	struct memory_chunk* app_mem_start;
