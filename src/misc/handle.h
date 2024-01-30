@@ -21,6 +21,9 @@ struct _handle_table_entry{
 	struct _gc_object* ref;
 };
 
+
+#define NULL_HANDLE ((struct handle) {0})
+
 /*
 initializes a handle table
 @warning caller MUST ensure enough space for struct _handle_table and [_n] entries 

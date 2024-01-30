@@ -54,8 +54,24 @@ struct _gc_object_field {
 		type		: 3,
 		struct_sz	: 12;
 	u16 ref_count;
-	u32 sz; // size of array for valid array field, number of consecutive free _gc_object_field structs, when invalid field
+
+	/*
+	size of array for valid array field
+	number of consecutive free _gc_object_field structs, when invalid field
+	*/
+	u32 sz;
 	void* data;
+};
+
+// blueprint struct for garbage collectible object
+struct _gc_object_type{
+	u64 nFields;
+	struct _gc_field_prototype {
+		u16 isArray		: 1,
+		type		: 3,
+		struct_sz	: 12;
+		u32 sz;
+	}* fields;
 };
 
 #endif
