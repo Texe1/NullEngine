@@ -1,7 +1,9 @@
 #pragma once
 
 #include "typedef.h"
+#include "gc_structs.h"
 
+// symbolizes a reference to a garbage collectible object
 struct handle {
 	u64 counter;
 	u64 idx;
@@ -27,3 +29,21 @@ initializes a handle table
 @returns address of next byte after the table
 */
 void* _init_handle_table(u64 _n, void* _ptr);
+
+/*
+creates a handle from the given objuect
+@param _obj pointer to the object the handle should reference
+@returns - handle to [_obj]
+@returns - null-handle on failure
+*/
+struct handle _create_handle(struct _gc_object* _obj);
+
+/*
+TODO implementation
+releases a handle so that the garbage collector can work properly
+@param _h valid handle
+@returns - zero on success
+@returns - -1 on unhandled error
+@returns - error code otherwise
+*/
+i32 _release_handle(struct handle _h);
