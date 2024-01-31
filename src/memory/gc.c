@@ -53,9 +53,9 @@ i32 _gc_run_mark(){
 
 	struct _handle_table* table = mem->base_handle_table;
 	struct _handle_table_entry* handles = table + 1;
-
+	
 	int n = 0;
-	for(u64 i; i < table->nMax && n < table->nUsed; i++){
+	for(u64 i = 0; i < table->nMax && n < table->nUsed; i++){
 		if(handles[i].used){
 			_rec_gc_mark(gc, handles[i].ref);
 			n++;
@@ -66,8 +66,8 @@ i32 _gc_run_mark(){
 }
 
 i32 _rec_gc_mark(struct _gc* _gc, struct _gc_object* _obj){
-	if(_obj->magicNum != GC_MAGIC_NUM) return 1;
 
+	if(_obj->magicNum != GC_MAGIC_NUM) return 1;
 	if(_obj->gc_mark == _gc->mark_bit) return 0;
 
 	_obj->gc_mark = _gc->mark_bit;
@@ -87,12 +87,27 @@ i32 _rec_gc_mark(struct _gc* _gc, struct _gc_object* _obj){
 			_rec_gc_mark(_gc, ref_list[i]);
 		}
 	}
+	return 0;
 }
 
 /*
 Only for testing 
 */
 #define N_OBJ_TYPES 1
+
+/*
+Only for testing 
+*/
+struct _gc_object_field field_prototypes[] = {
+	{
+		.type = GC_OBJECT_FIELD_8B,
+		.isArray = 0,
+		.ref_count = 0,
+		.struct_sz = 0,
+		.sz = 8,
+		.data = 0,
+	}
+};
 
 /*
 Only for testing 
@@ -104,17 +119,7 @@ struct _gc_object_type obj_types[] = {
 	},
 };
 
-/*
-Only for testing 
-*/
-struct _gc_field_prototype field_prototypes[] = {
-	{
-		.isArray = 0,
-		.struct_sz = 0,
-		.sz = 8,
-		.type = GC_OBJECT_FIELD_8B,
-	}
-};
+
 
 struct _gc_object_field* _get_field_array(u64 n){
 	struct _gc* gc = &mem->gc;
@@ -131,6 +136,24 @@ struct _gc_object_field* _get_field_array(u64 n){
 	return NULL;
 }
 
+struct _gc_object* _get_free_obj(){
+	struct _gc* gc = &(mem->gc);
+
+	if(gc->n_objects == gc->max_n_obj){
+		LOG("out of Object Space!\n");
+		return NULL;
+	}
+	struct _gc_object* o = gc->objs;
+	for(u64 i = 0; i < gc->max_n_obj; i++){
+		if(o->magicNum != GC_MAGIC_NUM){
+			return o;
+		}
+		o++;
+	}
+
+
+}
+
 struct handle _create_object(u64 type){
 	if(type >= N_OBJ_TYPES) return NULL_HANDLE;
 
@@ -143,19 +166,22 @@ struct handle _create_object(u64 type){
 		return NULL_HANDLE;
 	}
 
-	struct _gc_object* o = gc->objs;
+	struct _gc_object* o = _get_free_obj();
+	if(!o) return NULL_HANDLE;
 
-	for(u64 i = 0; i < gc->max_n_obj; i++){
-		o++;
-		if(o->magicNum != GC_MAGIC_NUM){
-			break;
-		}
-		// TODO
+	*o = (struct _gc_object) {
+		.magicNum = GC_MAGIC_NUM,
 
-		return _create_handle(o);
-	}
-	o->magicNum = GC_MAGIC_NUM;
-	o->nFields = blueprint->nFields;
+		.data = NULL,
+		.gc_active = 0,
+		.gc_mark = !gc->mark_bit,
+		.ref_cnt = 0,
+		.sz = 0,
+
+		.nFields = blueprint->nFields,
+		.fields = _get_field_array(o->nFields),
+		0
+	};
 	
 	o->fields = _get_field_array(o->nFields);
 
@@ -163,6 +189,18 @@ struct handle _create_object(u64 type){
 		o->magicNum = 0;
 		return NULL_HANDLE;
 	}
+
+	for(u64 i = 0; i < o->nFields; i++){
+		o->fields[i] = blueprint->fields[i];
+		if(o->fields[i].sz > 8){
+			o->magicNum = 0;
+			// TODO Memory Allocation
+			DBG("MEMORY ALLOCATION NOT YET IMPLEMENTED!");
+			return NULL_HANDLE;
+		}
+	}
+
+	BRK;
 
 	return _create_handle(o);
 }

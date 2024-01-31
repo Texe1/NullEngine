@@ -31,6 +31,20 @@ struct _gc {
 	struct _gc_object_field* obj_fields;
 };
 
+struct _gc_object_field {
+	u16 isArray		: 1,
+		type		: 3,
+		struct_sz	: 12;
+	u16 ref_count;
+
+	/*
+	size of array for valid array field
+	number of consecutive free _gc_object_field structs, when invalid field
+	*/
+	u32 sz;
+	void* data;
+};
+
 // base struct for garbage collectible object
 struct _gc_object {
 
@@ -49,29 +63,10 @@ struct _gc_object {
 	void* data;
 };
 
-struct _gc_object_field {
-	u16 isArray		: 1,
-		type		: 3,
-		struct_sz	: 12;
-	u16 ref_count;
-
-	/*
-	size of array for valid array field
-	number of consecutive free _gc_object_field structs, when invalid field
-	*/
-	u32 sz;
-	void* data;
-};
-
 // blueprint struct for garbage collectible object
-struct _gc_object_type{
+struct _gc_object_type {
 	u64 nFields;
-	struct _gc_field_prototype {
-		u16 isArray		: 1,
-		type		: 3,
-		struct_sz	: 12;
-		u32 sz;
-	}* fields;
+	struct _gc_object_field* fields;
 };
 
 #endif
