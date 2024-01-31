@@ -20,6 +20,11 @@
 
 #ifdef _ENGINE
 
+enum MEMORY_CHUNK_TYPE {
+	MEMORY_CHUNK_TYPE_NONE,
+	MEMORY_CHUNK_TYPE_TABLE,
+};
+
 struct _memory_chunk {
 	u64 sz;
 
@@ -30,16 +35,26 @@ struct _memory_chunk {
 	struct _memory_chunk* nextFree;
 
 	u64 free	: 1,
+		fixed	: 1,
 		type	: 8,
-		align 	: 16;
+		align 	: 54;
+};
+
+// will be right after the struct _memory_chunk with type MEMORY_CHUNK_TYPE_TABLE to give more information
+struct _memory_chunk_table_addon {
+	u64 entry_sz;
+	u64 n_entries;
+	struct _memory_chunk* prev;
+	struct _memory_chunk* next;
 };
 
 // the struct that defines the main memory chunk allocated during initialization
 struct _base_memory {
 	u64 sz;
 	struct _memory_chunk* first_chunk;
-	
+
 	struct _handle_table* base_handle_table;
+
 	struct _gc gc;
 };
 
@@ -50,8 +65,6 @@ struct _base_memory_create_info {
 	u64 n_obj_fields;
 };
 
-
-
 /*
 initializes base memory
 @warning if this fails, NullEngine will crash, since there is not enough memory to allocate
@@ -60,6 +73,13 @@ initializes base memory
 struct _base_memory* _ess_init_base_mem(struct _base_memory_create_info* _info);
 
 struct _memory_chunk* _alloc(u64 _sz);
+struct _memory_chunk* _calloc(u64 _sz);
+
+struct _memory_chunk* _alloc_table(u64 _n, u64 _sz);
+struct _memory_chunk* _calloc_table(u64 _n, u64 _sz);
+
+i32 _rec_mem_chunk_table_set(struct _memory_chunk* _mem, u64 _idx, void* _data);
+
 
 i32 _free(struct _memory_chunk* _chunk);
 

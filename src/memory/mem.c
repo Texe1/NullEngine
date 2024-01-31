@@ -102,9 +102,13 @@ struct _memory_chunk* _get_free_mem_chunk(u64 _sz){
 
 #define MIN_MEM_CHUNK_SIZE 64
 
-i32 _split_mem_chunk(struct _memory_chunk* _chunk, u64 _sz){
-	if(!(_chunk->free)) return 1;
-	if(_chunk->sz - _sz - sizeof(struct _memory_chunk) <= MIN_MEM_CHUNK_SIZE) return 0;
+/*
+Like _split_mem_chunk but doesn't check the new chunk's size.
+Useful for swapping chunks
+*/
+i32 _force_split_mem_chunk(struct _memory_chunk* _chunk, u64 _sz){
+	if(!_chunk || !(_chunk->free)) return 1;
+	if(_chunk->sz - _sz <= sizeof(struct _memory_chunk)) return 0;
 
 	struct _memory_chunk* new_chunk = ((u8*)(_chunk + 1)) + _sz;
 	*new_chunk = (struct _memory_chunk){
@@ -135,6 +139,13 @@ i32 _split_mem_chunk(struct _memory_chunk* _chunk, u64 _sz){
 			c = c->next;
 		}
 	}
+}
+
+i32 _split_mem_chunk(struct _memory_chunk* _chunk, u64 _sz){
+	if(!_chunk || !(_chunk->free)) return 1;
+	if(_chunk->sz - _sz - sizeof(struct _memory_chunk) <= MIN_MEM_CHUNK_SIZE) return 0;
+
+	_force_split_mem_chunk(_chunk, _sz);
 
 	return 0;
 }
@@ -191,8 +202,42 @@ struct _memory_chunk* _alloc(u64 _sz){
 	if(!c) return NULL;
 	_split_mem_chunk(c, _sz);
 	_reserve_mem_chunk(c);
+	c->fixed = 0;
 	return c;
 }
+
+struct _memory_chunk* _calloc(u64 _sz){
+	struct _memory_chunk* chunk = _alloc(_sz);
+	if(!chunk) return NULL;
+	void* data = chunk + 1;
+	memset(data, 0, _sz);
+}
+
+struct _memory_chunk* _alloc_table(u64 _n, u64 _sz){
+	u64 alloc_sz = _n * _sz + sizeof(struct _memory_chunk_table_addon);
+	struct _memory_chunk* chunk = _alloc(alloc_sz);
+	if(!chunk) return NULL;
+	chunk->type = MEMORY_CHUNK_TYPE_TABLE;
+	struct _memory_chunk_table_addon* tbl = (chunk + 1);
+	tbl->entry_sz = _sz;
+	tbl->n_entries = _n;
+
+	tbl->prev = NULL,
+	tbl->next = NULL;
+
+	return chunk;
+}
+
+struct _memory_chunk* _calloc_table(u64 _n, u64 _sz){
+	struct _memory_chunk* chunk = _alloc_table(_n, _sz);
+	if(!chunk) return NULL;
+	struct _memory_chunk_table_addon* tbl = chunk + 1;
+	void* data = tbl + 1;
+	memset(data, 0, _n * _sz);
+
+	return chunk;
+}
+
 
 i32 _free(struct _memory_chunk* _chunk){
 	_chunk->free = 1;
@@ -202,4 +247,21 @@ i32 _free(struct _memory_chunk* _chunk){
 		_rec_try_merge(_chunk);
 	}
 	return 0;
+}
+
+i32 _rec_mem_chunk_table_set(struct _memory_chunk* _mem, u64 _idx, void* _data){
+	struct _memory_chunk_table_addon* tbl = _mem + 1;
+	if(_idx < tbl->n_entries){
+		u8* tbl_data = tbl + 1;
+		tbl_data += tbl->entry_sz * _idx;
+
+		memcpy(tbl_data, _data, tbl->entry_sz);
+
+		return 0;
+	}
+	if(tbl->next){
+		return _rec_mem_chunk_table_set(tbl->next, _idx - tbl->n_entries, _data);
+	}
+
+	return -1;
 }
