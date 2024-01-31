@@ -1,24 +1,20 @@
 # NullEngine
 
 ## The Vision:
-The goal I try to reach with this Vulkan-based Game "Engine"(this naming might be misleading, more on that later) is a single library, that makes it easier to work with vulkan by employing sort of a "breadth-first" approach, meaning you can directly start with programming your game and worry about optimizations later, when the main game is running. This mostly means, that you don't actually have to pass any config structs, which will make the Engine use the default. 
-This way it works without you having to worry about vulkan related or OS specific(BUT at the moment, there is only a Windows version) stuff, but if you'd like to optimize for your game / program later, you can very easily do so as well
+The goal I try to reach with this Vulkan-based Game Engine is a single library written in C for developing all kinds of Applications (currently only for Windows). It removes the Dangers of C while trying to keep the simplicity the Language brings. In the future I might provide an additional (Semi-Compiled) Language to work with the Engine.
+I aim to create a framework that behaves the same across plattforms (watch out for a Linux or MacOS version), that is lightweight, (at least decently) fast, memory efficient, but doesn't dictate how you code your application.
+### Don't expect anything usable in 2024
+Developing an Engine is a lot of work, and I have a life besides Coding, so don't expect me to produce an Engine in 1 Year. This is also why I won't do versioning for now, as versions should all be at least somewhat usable, which is not yet the case.
+### Don't do pull requests
+This is **my** Project, I do this as a Hobby, please don't expect me to use your code. You can however report issues and bugs, or even request certain features
+### I code by feel, not by plan
+If all of this seems vague, then this is because it **is** vague. I don't know exactly where this will end up, but I hope you will have a great time looking through the code, bughunting certain versions, breaking the Engine, or even using it
 
 ---
 
-## This is technically not (yet) an "Engine" in the traditional sense
-An Engine (like Unity, Godot, Gamemaker, Unreal, ...) usually wraps around your program, calls your functions, cleans up after you, provides its own entry point, etc. .
-NullEngine is just a library. There is (currently) no GUI, no predefined entry-point, no config file, but most importantly, **there are no restrictions** \
-If you want NullEngine to not do something, you can simply not call the function or change a flag inside a config struct. You are in control of what Functions are called, and which aren't.
-
-> Exceptions are: 
-	>- Functions that verify parameters 
-	>- Debugging utils when the _DEBUG macro is defined 
-	>- Functions that certain exit funtions call (*BUT you could simply not call those exit functions, which I **do not recommend**, because it doesn't benefit you*)
-
-
----
-
+## This is not (yet) a "Game Engine" like you may be used to
+Traditional Game Engines (like [Unity](https://unity.com/de), [Godot](https://godotengine.org/), [Gamemaker Studio](https://gamemaker.io/), [Unreal Engine](https://www.unrealengine.com), ...) usually wrap around your program, call your functions, clean up after you, provide their own entry point, etc. .
+NullEngine is just a library. There is (currently) no GUI, no predefined entry-point, and no config file. This might change though, so watch out for any changes!
 ## Code conventions
 
 ### Naming
@@ -29,8 +25,11 @@ functions may start with certain attributes in their name. these include:
 - ***big*** for functions that are considerably larger than most others
 - ***nst*** for functions that aren't recursive, but call a lot of nested funtions and thus impart similar dangers (e.g. stack overflows)
 - ***dpc*** for outdated/deprecated functions. the comments above these functions *may* tell you the alternative to use
+- ***ess*** for functions that can crash the program (i.e. 'essential' functions) (somthing like _ess_init_base_memory())
 
 functions that start with **underscore ('_')** are intended for internal uses inside the Engine and should not be used by user applications. They are accessible through **#define _ENGINE**
+
+function parameters also start with **underscore ('_')**. This makes it easier to detect (dangerous/unreliable) side effects.
 
 #### Types
 
