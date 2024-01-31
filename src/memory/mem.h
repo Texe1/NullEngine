@@ -20,14 +20,14 @@
 
 #ifdef _ENGINE
 
-struct memory_chunk {
+struct _memory_chunk {
 	u64 sz;
 
-	struct memory_chunk* prev;
-	struct memory_chunk* next;
+	struct _memory_chunk* prev;
+	struct _memory_chunk* next;
 	
-	struct memory_chunk* prevFree;
-	struct memory_chunk* nextFree;
+	struct _memory_chunk* prevFree;
+	struct _memory_chunk* nextFree;
 
 	u64 free	: 1,
 		type	: 8,
@@ -37,7 +37,7 @@ struct memory_chunk {
 // the struct that defines the main memory chunk allocated during initialization
 struct _base_memory {
 	u64 sz;
-	struct memory_chunk* app_mem_start;
+	struct _memory_chunk* first_chunk;
 	
 	struct _handle_table* base_handle_table;
 	struct _gc gc;
@@ -58,5 +58,9 @@ initializes base memory
 @param _info self explanatory
 */
 struct _base_memory* _ess_init_base_mem(struct _base_memory_create_info* _info);
+
+struct _memory_chunk* _alloc(u64 _sz);
+
+i32 _free(struct _memory_chunk* _chunk);
 
 #endif
