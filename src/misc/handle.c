@@ -6,7 +6,7 @@
 
 extern struct _base_memory* mem;
 
-void* _init_handle_table(u64 _n, void* _ptr){
+i32 _init_handle_table(u64 _n, void* _ptr){
 	struct _handle_table* table = _ptr;
 	void* data = table + 1;
 
@@ -19,7 +19,7 @@ void* _init_handle_table(u64 _n, void* _ptr){
 		.nMax = _n,
 	};
 
-	return ((char*)data) + _n * sizeof(struct _handle_table_entry);
+	return 0;
 }
 
 
@@ -29,7 +29,7 @@ struct handle _create_handle(struct _gc_object* _obj){
 	if(!tbl || !_obj || !tbl->nFree) return (struct handle){0};
 	struct _handle_table_entry* handles = tbl + 1;
 
-	for(int i = 0; i < tbl->nMax; i++){
+	for(u64 i = 0; i < tbl->nMax; i++){
 		if(handles[i].used) continue;
 
 		handles[i].used = 1;
@@ -39,7 +39,10 @@ struct handle _create_handle(struct _gc_object* _obj){
 		tbl->nFree--;
 		tbl->nUsed++;
 
-		struct handle h; 
+		struct handle h = {
+			.counter = handles[i].counter,
+			.idx = i,
+		}; 
 		return h;
 	}
 

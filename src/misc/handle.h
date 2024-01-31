@@ -29,9 +29,9 @@ initializes a handle table
 @warning caller MUST ensure enough space for struct _handle_table and [_n] entries 
 @param _n the number of allocated spaces for
 @param _ptr the position where the table should be put
-@returns address of next byte after the table
+@returns 0
 */
-void* _init_handle_table(u64 _n, void* _ptr);
+i32 _init_handle_table(u64 _n, void* _ptr);
 
 /*
 creates a handle from the given objuect
