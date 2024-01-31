@@ -43,15 +43,20 @@ struct _base_memory {
 	struct _gc gc;
 };
 
+struct _base_memory_create_info {
+	u64 plain_sz;
+	u64 n_handles;
+	u64 n_objs;
+	u64 n_obj_fields;
+};
+
 
 
 /*
 initializes base memory
 @warning if this fails, NullEngine will crash, since there is not enough memory to allocate
-@param  _min_sz the minimum freely available size in bytes
-@param _n_reserved_handles amount of spaces for handles(references) that is prereserved (does not count towards [_min_sz])
-@param _n_reserved_gc_obj_refs amount of spaces for the object table (for garbage collector) that is reserved (does not count towards [_min_sz])
+@param _info self explanatory
 */
-struct _base_memory* _init_base_mem(u64 _min_sz, u64 _n_reserved_handles, u64 _n_reserved_gc_obj_refs);
+struct _base_memory* _ess_init_base_mem(struct _base_memory_create_info* _info);
 
 #endif
