@@ -78,8 +78,10 @@ struct _memory_chunk* _calloc(u64 _sz);
 struct _memory_chunk* _alloc_table(u64 _n, u64 _sz);
 struct _memory_chunk* _calloc_table(u64 _n, u64 _sz);
 
+i32 _rec_mem_chunk_table_get(struct _memory_chunk* _mem, u64 _idx, void* _ret);
 i32 _rec_mem_chunk_table_set(struct _memory_chunk* _mem, u64 _idx, void* _data);
-
+i32 _rec_mem_chunk_table_bulk_get(struct _memory_chunk* _mem, u64 _idx, u64 _len, void* _ret);
+i32 _rec_mem_chunk_table_bulk_set(struct _memory_chunk* _mem, u64 _idx, u64 _len, void* _data);
 
 i32 _free(struct _memory_chunk* _chunk);
 
