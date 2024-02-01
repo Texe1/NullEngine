@@ -13,6 +13,7 @@ struct _handle_table {
 	u64 nUsed;
 	u64 nFree;
 	u64 nMax;
+	struct _memory_chunk* tbl;
 };
 
 struct _handle_table_entry{
@@ -25,13 +26,11 @@ struct _handle_table_entry{
 #define NULL_HANDLE ((struct handle) {0})
 
 /*
-initializes a handle table
-@warning caller MUST ensure enough space for struct _handle_table and [_n] entries 
-@param _n the number of allocated spaces for
-@param _ptr the position where the table should be put
+initializes the handle table
+@param _n the number of allocated spaces for 
 @returns 0
 */
-i32 _init_handle_table(u64 _n, void* _ptr);
+i32 _ess_init_handle_table(u64 _n);
 
 /*
 creates a handle from the given objuect

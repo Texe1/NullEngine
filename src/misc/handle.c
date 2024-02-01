@@ -6,17 +6,19 @@
 
 extern struct _base_memory* mem;
 
-i32 _init_handle_table(u64 _n, void* _ptr){
-	struct _handle_table* table = _ptr;
-	void* data = table + 1;
+i32 _ess_init_handle_table(u64 _n){
+	if(mem->handle_table.tbl) return 1;
 
-	memset(data, 0, _n * sizeof(struct _handle_table_entry));
+	struct _memory_chunk* chunk = _calloc_table(_n, sizeof(struct _handle_table_entry));
+	if(!chunk) return -1;
 
-	table->nFree = _n;
-	*table = (struct _handle_table) {
+	chunk->fixed = 1;
+
+	mem->handle_table = (struct _handle_table) {
+		.tbl  = chunk,
+		.nMax = _n,
 		.nFree = _n,
 		.nUsed = 0,
-		.nMax = _n,
 	};
 
 	return 0;
@@ -24,25 +26,31 @@ i32 _init_handle_table(u64 _n, void* _ptr){
 
 
 struct handle _create_handle(struct _gc_object* _obj){
-	struct _handle_table* tbl = mem->base_handle_table;
+	struct _handle_table* handle_table = &(mem->handle_table);
 
-	if(!tbl || !_obj || !tbl->nFree) return (struct handle){0};
-	struct _handle_table_entry* handles = tbl + 1;
 
-	for(u64 i = 0; i < tbl->nMax; i++){
-		if(handles[i].used) continue;
+	if(!handle_table->tbl || !_obj || !handle_table->nFree) return (struct handle){0};
 
-		handles[i].used = 1;
-		handles[i].ref = _obj;
+	struct _handle_table_entry entry;
+
+	for(u64 i = 0; i < handle_table->nMax; i++){
+		// TODO low level access function for only getting pointer of entry
+		if(_rec_mem_chunk_table_get(handle_table->tbl, i, &entry)) break;
+		if(entry.used) continue;
+
+		entry.used = 1;
+		entry.ref = _obj;
 		_obj->ref_cnt++;
 
-		tbl->nFree--;
-		tbl->nUsed++;
+		handle_table->nFree--;
+		handle_table->nUsed++;
 
 		struct handle h = {
-			.counter = handles[i].counter,
+			.counter = entry.counter,
 			.idx = i,
 		}; 
+
+		_rec_mem_chunk_table_set(handle_table->tbl, i, &entry);
 		return h;
 	}
 

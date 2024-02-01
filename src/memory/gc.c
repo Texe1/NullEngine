@@ -51,13 +51,14 @@ i32 _gc_run_mark(){
 
 	if(!(gc->active)) return 1;
 
-	struct _handle_table* table = mem->base_handle_table;
-	struct _handle_table_entry* handles = table + 1;
+	struct _memory_chunk* table = mem->handle_table.tbl;
 	
+	struct _handle_table_entry entry;
 	int n = 0;
-	for(u64 i = 0; i < table->nMax && n < table->nUsed; i++){
-		if(handles[i].used){
-			_rec_gc_mark(gc, handles[i].ref);
+	for(u64 i = 0; i < mem->handle_table.nMax && n < mem->handle_table.nUsed; i++){
+		if(_rec_mem_chunk_table_get(table, i, &entry)) return 1;
+		if(entry.used){
+			_rec_gc_mark(gc, entry.ref);
 			n++;
 		}
 	}
@@ -199,8 +200,6 @@ struct handle _create_object(u64 type){
 			return NULL_HANDLE;
 		}
 	}
-
-	BRK;
 
 	return _create_handle(o);
 }
