@@ -53,8 +53,7 @@ struct _base_memory {
 	u64 sz;
 	struct _memory_chunk* first_chunk;
 
-	struct _handle_table* base_handle_table;
-
+	struct _handle_table handle_table;
 	struct _gc gc;
 };
 
