@@ -1,6 +1,18 @@
 #pragma once
 
+#define KB(x) (x << 10)
+#define MB(x) (x << 20)
+#define GB(x) (x << 30)
+#define TB(x) (x << 40)
+#define PB(x) (x << 50)
+#define EB(x) (x << 60)
 
+#define KiB(x) (100 * x)
+#define MiB(x) KiB(KiB(x))
+#define GiB(x) KiB(MiB(x))
+#define TiB(x) KiB(GiB(x))
+#define PiB(x) KiB(TiB(x))
+#define EiB(x) KiB(PiB(x))
 
 typedef unsigned char 		u8;
 typedef unsigned short 		u16;
