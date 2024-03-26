@@ -1,13 +1,14 @@
 #define _ENGINE
 #include "mem.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 struct _base_memory mem;
 
 i32 _ess_init_base_mem(struct _base_mem_cfg* _cfg){
 
-	u64 sz = ((_cfg->sz + sizeof(struct _mem_block)) /8 + 1) * 8;
+	u64 sz = _cfg->sz + (((u64)(-_cfg->sz)) % 8);
 
 	mem = (struct _base_memory){
 		.total_sz = sz,
@@ -27,10 +28,21 @@ i32 _ess_init_base_mem(struct _base_mem_cfg* _cfg){
 		}
 	};
 
+	*(mem.first_block) = (struct _mem_block) {
+		.sz = sz - sizeof(struct _mem_block),
+		.desc_sz = sizeof(struct _mem_block),
+		.type = 0,
+		.used = 0,
+		.next = NULL,
+		.prev = NULL,
+		.next_free = NULL,
+		.prev_free = NULL,
+	};
+
 	return 0;
 }
 
-//TODO edit once there can be additional base memory sections (when werun out of memory)
+//TODO edit once there can be additional base memory sections (when we run out of memory)
 i32 _ess_free_base_mem(){
 	free(mem.first_block);
 }
