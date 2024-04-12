@@ -109,3 +109,9 @@ i32 _free_mem_block(struct _mem_block* _blk){
 	_blk->used = 0;
 	return 0;
 }
+
+// TODO
+i32 _expand_mem_block(struct _mem_block* _blk, u64 new_sz);
+
+// TODO
+i32 alloc(u64 _sz);

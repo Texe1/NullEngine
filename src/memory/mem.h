@@ -57,6 +57,19 @@ void* _merge_mem_block(struct _mem_block*);
 i32 _reserve_mem_block(struct _mem_block*);
 i32 _free_mem_block(struct _mem_block*);
 
+i32 _expand_mem_block(struct _mem_block*);
+
+i32 alloc(u64 _sz);
+
+#pragma endregion
+
+#pragma region mem_types
+
+struct _mem_pool {
+	struct _mem_block;
+	u64 block_sz;
+};
+
 #pragma endregion
 
 #endif
